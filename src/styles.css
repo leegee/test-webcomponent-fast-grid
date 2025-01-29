@@ -1,0 +1,16 @@
+html * {
+    background: #222;
+    color: #ddd;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    border: 1px solid #888;
+    padding: 1em;
+    text-align: left;
+}
