@@ -1,7 +1,7 @@
 {
   "name": "web-component-data-grid",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,9 +17,8 @@
     "@web/test-runner-playwright": "^0.11.0",
     "chai": "^5.1.2",
     "dotenv": "^16.4.7",
-    "vite": "^6.0.5"
-  },
-  "dependencies": {
+    "vite": "^6.0.5",
     "ws": "^8.18.0"
-  }
+  },
+  "dependencies": {}
 }
