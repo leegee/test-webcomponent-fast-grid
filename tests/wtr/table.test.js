@@ -1,5 +1,6 @@
 import { expect } from '@esm-bundle/chai';
-import { fixture, html } from '@open-wc/testing';
+import { fixture, html, waitUntil } from '@open-wc/testing';
+
 import '../../src/components/TableComponent';
 
 describe('FooTable WebSocket Data Handling', () => {
@@ -42,14 +43,12 @@ describe('FooTable WebSocket Data Handling', () => {
             // Check that the table is initially empty
             expect(component.shadowRoot.querySelectorAll('tbody tr')).to.have.length(0);
 
-            // Send a fake WebSocket message
-            const mockData = JSON.stringify([{ id: 1, name: 'Alice', age: 30, location: 'Paris' }]);
-            mockWebSocket.send(mockData);
+            mockWebSocket.send(JSON.stringify([{
+                id: 1, name: 'Alice', age: 30, location: 'Paris'
+            }]));
 
-            // Wait for asynchronous updates
-            await new Promise(resolve => setTimeout(resolve, 100)); // Explicit wait
+            await waitUntil(() => component.shadowRoot.querySelectorAll('tbody tr').length > 0);
 
-            // Check if table updated
             const rows = component.shadowRoot.querySelectorAll('tbody tr');
             expect(rows).to.have.length(1);
 
@@ -64,11 +63,11 @@ describe('FooTable WebSocket Data Handling', () => {
 
     describe('Subsequent WebSocket Data Updates', () => {
         it('should update existing row when new data for the same ID is received', async () => {
-            // Initial row data
-            const mockInitialData = JSON.stringify([{ id: 1, name: 'Alice', age: 30, location: 'Paris' }]);
-            mockWebSocket.send(mockInitialData);
+            mockWebSocket.send(JSON.stringify([{
+                id: 1, name: 'Alice', age: 30, location: 'Paris'
+            }]));
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await waitUntil(() => component.shadowRoot.querySelectorAll('tbody tr').length > 0);
 
             let rows = component.shadowRoot.querySelectorAll('tbody tr');
             expect(rows).to.have.length(1);
@@ -77,10 +76,12 @@ describe('FooTable WebSocket Data Handling', () => {
             const mockUpdatedData = JSON.stringify([{ id: 1, name: 'Alice', age: 31, location: 'London' }]);
             mockWebSocket.send(mockUpdatedData);
 
-            // Wait for the update
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Wait for the update to reflect in the table
+            await waitUntil(() => {
+                const updatedRows = component.shadowRoot.querySelectorAll('tbody tr');
+                return updatedRows.length === 1 && updatedRows[0].querySelectorAll('td')[2].textContent === '31';
+            });
 
-            // Check if table is updated
             rows = component.shadowRoot.querySelectorAll('tbody tr');
             expect(rows).to.have.length(1);
 
@@ -95,10 +96,11 @@ describe('FooTable WebSocket Data Handling', () => {
 
     describe('Subsequent WebSocket Data Adds', () => {
         it('should add a row when new data is received', async () => {
-            const mockInitialData = JSON.stringify([{ id: 1, name: 'Alice', age: 30, location: 'Paris' }]);
-            mockWebSocket.send(mockInitialData);
+            mockWebSocket.send(JSON.stringify([{
+                id: 1, name: 'Alice', age: 30, location: 'Paris'
+            }]));
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await waitUntil(() => component.shadowRoot.querySelectorAll('tbody tr').length > 0);
 
             let rows = component.shadowRoot.querySelectorAll('tbody tr');
             expect(rows).to.have.length(1);
@@ -106,7 +108,8 @@ describe('FooTable WebSocket Data Handling', () => {
             const newMockData = JSON.stringify([{ id: 2, name: 'Bob', age: 80, location: 'Berlin' }]);
             mockWebSocket.send(newMockData);
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Wait for the new row to appear
+            await waitUntil(() => component.shadowRoot.querySelectorAll('tbody tr').length === 2);
 
             rows = component.shadowRoot.querySelectorAll('tbody tr');
             expect(rows).to.have.length(2);
