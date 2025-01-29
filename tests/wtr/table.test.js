@@ -10,7 +10,7 @@ describe('FooTable WebSocket Data Handling', () => {
     beforeEach(async () => {
         // Mock WebSocket
         originalWebSocket = globalThis.WebSocket; // Save original WebSocket
-        globalThis.WebSocket = class {
+        globalThis.WebSocket = class WebSocket {
             constructor() {
                 this.listeners = {};
                 mockWebSocket = this;
@@ -21,8 +21,7 @@ describe('FooTable WebSocket Data Handling', () => {
             }
             close() { }
             send(data) {
-                // Simulate a delayed response
-                setTimeout(() => {
+                setTimeout(() => { // Simulate a delayed response
                     if (this.listeners['message']) {
                         this.listeners['message']({ data });
                     }
@@ -30,7 +29,6 @@ describe('FooTable WebSocket Data Handling', () => {
             }
         };
 
-        // Create the component
         component = await fixture(html`<foo-table websocket-url="ws://localhost:8023"></foo-table>`);
     });
 
@@ -70,10 +68,8 @@ describe('FooTable WebSocket Data Handling', () => {
             const mockInitialData = JSON.stringify([{ id: 1, name: 'Alice', age: 30, location: 'Paris' }]);
             mockWebSocket.send(mockInitialData);
 
-            // Wait for asynchronous updates
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            // Check if table has 1 row
             let rows = component.shadowRoot.querySelectorAll('tbody tr');
             expect(rows).to.have.length(1);
 
@@ -94,6 +90,33 @@ describe('FooTable WebSocket Data Handling', () => {
             expect(cells[1].textContent).to.equal('Alice');
             expect(cells[2].textContent).to.equal('31');
             expect(cells[3].textContent).to.equal('London');
+        });
+    });
+
+    describe('Subsequent WebSocket Data Adds', () => {
+        it('should add a row when new data is received', async () => {
+            const mockInitialData = JSON.stringify([{ id: 1, name: 'Alice', age: 30, location: 'Paris' }]);
+            mockWebSocket.send(mockInitialData);
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            let rows = component.shadowRoot.querySelectorAll('tbody tr');
+            expect(rows).to.have.length(1);
+
+            const newMockData = JSON.stringify([{ id: 2, name: 'Bob', age: 80, location: 'Berlin' }]);
+            mockWebSocket.send(newMockData);
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            rows = component.shadowRoot.querySelectorAll('tbody tr');
+            expect(rows).to.have.length(2);
+
+            const cells = rows[1].querySelectorAll('td');
+            expect(cells.length).to.equal(4);
+            expect(cells[0].textContent).to.equal('2');
+            expect(cells[1].textContent).to.equal('Bob');
+            expect(cells[2].textContent).to.equal('80');
+            expect(cells[3].textContent).to.equal('Berlin');
         });
     });
 });
