@@ -129,11 +129,10 @@ describe('FooTable WebSocket Data Handling', () => {
             let rows = component.shadowRoot.querySelectorAll('tbody tr');
             expect(rows).to.have.length(1);
 
-            const newMockData = JSON.stringify([
+            mockWebSocket.send(JSON.stringify([
                 { id: 2, name: 'Bob', age: 80, location: 'Berlin' },
                 { id: 3, name: 'Charlie', age: 3, location: 'Budapest' },
-            ]);
-            mockWebSocket.send(newMockData);
+            ]));
 
             // Wait for the new row to appear
             await waitUntil(() => component.shadowRoot.querySelectorAll('tbody tr').length === 3);
@@ -147,6 +146,32 @@ describe('FooTable WebSocket Data Handling', () => {
             expect(cells[1].textContent).to.equal('Charlie');
             expect(cells[2].textContent).to.equal('3');
             expect(cells[3].textContent).to.equal('Budapest');
+        });
+
+        it('should add many rows', async () => {
+            const rowsToAdd = 100;
+            let mockData = [];
+            for (let id = 0; id < rowsToAdd; id++) {
+                mockData.push(
+                    { id: id.toString(), name: 'Person ' + id, age: 21 + id, location: 'Place ' + id },
+                );
+            }
+            mockWebSocket.send(JSON.stringify(mockData));
+
+            // Wait for the new row to appear
+            await waitUntil(() => component.shadowRoot.querySelectorAll('tbody tr').length > 1);
+
+            const rows = component.shadowRoot.querySelectorAll('tbody tr');
+            expect(rows).to.have.length(rowsToAdd);
+
+            for (let id = 0; id < mockData.length; id++) {
+                const cells = rows[id].querySelectorAll('td');
+                expect(cells.length).to.equal(4);
+                expect(cells[0].textContent).to.equal(id.toString());
+                expect(cells[1].textContent).to.equal('Person ' + id);
+                expect(cells[2].textContent).to.equal((21 + id).toString());
+                expect(cells[3].textContent).to.equal('Place ' + id);
+            }
         });
 
     });
