@@ -5,40 +5,52 @@ class TableComponent extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
         this.columns = [];
-        this.rows = new Map();  // Store rows by ID
+        this.rows = new Map();
         this.lastReceivedData = null;
         this.updateRequested = false;
 
         this.shadowRoot.innerHTML = `
           <style>
+            main {
+              display: flex;
+            }
             table {
               width: 100%;
               border-collapse: collapse;
             }
             th, td {
-              border: 1px solid black;
-              padding: 8px;
+              border: 1px solid grey;
+              padding: 8pt;
               text-align: left;
             }
+            #pager {
+              writing-mode: vertical-lr;
+            }
           </style>
-          <table>
-            <thead></thead>
-            <tbody></tbody>
-          </table>
+
+          <main>
+            <table>
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+            <input id="pager" type="range" class="scrollbar" min="0" max="${this.numberOfRowsVisible}" value="0" />
+          </main>
         `;
 
         this.tbody = this.shadowRoot.querySelector('tbody');
         this.thead = this.shadowRoot.querySelector('thead');
+        this.pager = this.shadowRoot.getElementById('pager');
 
         this.ws = new WebSocket(this.getAttribute('websocket-url'));
+    }
 
+    connectedCallback() {
         this.ws.addEventListener('open', () => {
             this.ws.send(JSON.stringify({ type: 'connection_ack', message: 'hello' }));
             console.log('WebSocket connected');
         });
 
         this.ws.addEventListener('message', (event) => {
-            console.log('WebSocket message received', event.data);
             const newRows = JSON.parse(event.data);
 
             if (this.columns.length === 0 && newRows.length > 0) {
@@ -46,6 +58,7 @@ class TableComponent extends HTMLElement {
             }
 
             newRows.forEach(row => this.rows.set(row.id, row));
+            this.updatePagerMax();
 
             if (!this.updateRequested) {
                 this.updateRequested = true;
@@ -55,6 +68,8 @@ class TableComponent extends HTMLElement {
 
         this.ws.addEventListener('error', (err) => console.error('WebSocket error', err));
         this.ws.addEventListener('close', () => console.log('WebSocket connection closed'));
+
+        this.pager.addEventListener('input', () => this.renderVisibleRows());
     }
 
     disconnectedCallback() {
@@ -85,7 +100,7 @@ class TableComponent extends HTMLElement {
         }
 
         // Add data rows
-        for (let i = 0; i <= this.numberOfRowsVisible; i++) {
+        for (let i = 0; i < this.numberOfRowsVisible; i++) {
             const thisRowElement = rowElement.cloneNode(true);
             thisRowElement.dataset.id = i;
             this.tbody.appendChild(thisRowElement);
@@ -93,18 +108,26 @@ class TableComponent extends HTMLElement {
     }
 
     renderMessageToScreen(newRows) {
-        for (let i = 0; i < newRows.length; i++) {
-            const rowData = newRows[i];
-            let rowElement = this.tbody.querySelector(`[data-id="${rowData.id}"]`);
+        newRows.forEach(row => this.rows.set(row.id, row));
+        this.renderVisibleRows();
+        this.updateRequested = false;
+    }
+
+    renderVisibleRows() {
+        const start = parseInt(this.pager.value, 10);
+        // const end = start + this.numberOfRowsVisible;
+
+        for (let i = 0; i < this.numberOfRowsVisible; i++) {
+            const rowData = this.rows.get((start + i).toString());
+            let rowElement = this.tbody.querySelector(`[data-id="${i}"]`);
 
             if (!rowElement) {
                 console.log('no row el for ', rowData.id);
             } else {
+                console.log('DO ROW ', i, rowData, this.rows);
                 this.updateRow(rowElement, rowData);
             }
         }
-
-        this.updateRequested = false;
     }
 
     updateRow(rowElement, rowData) {
@@ -114,6 +137,11 @@ class TableComponent extends HTMLElement {
                 cell.textContent = rowData[col.key] || '';
             }
         });
+    }
+
+    updatePagerMax() {
+        this.pager.max = Math.max(0, this.rows.size - this.numberOfRowsVisible);
+        this.renderVisibleRows();
     }
 }
 

@@ -3,7 +3,7 @@
 import { WebSocketServer } from 'ws';
 import dotenv from 'dotenv';
 
-const SEND_INTERVAL_MS = 1000;
+const SEND_INTERVAL_MS = 100;
 const MAX_ROWS = 30;
 
 dotenv.config();
