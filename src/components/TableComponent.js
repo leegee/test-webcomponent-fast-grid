@@ -34,6 +34,7 @@ class TableComponent extends HTMLElement {
 
         this.ws = new WebSocket(this.websocket_url);
 
+        // Could extend the protocol to specify required columns
         this.ws.addEventListener('open', () => {
             this.ws.send(JSON.stringify({ type: 'connection_ack', message: 'hello' }));
             console.log('WebSocket connected');
@@ -57,13 +58,9 @@ class TableComponent extends HTMLElement {
             }
         });
 
-        this.ws.addEventListener('error', (err) => {
-            console.error('WebSocket error', err);
-        });
+        this.ws.addEventListener('error', (err) => console.error('WebSocket error', err));
 
-        this.ws.addEventListener('close', () => {
-            console.log('WebSocket connection closed');
-        });
+        this.ws.addEventListener('close', () => console.log('WebSocket connection closed'));
     }
 
     disconnectedCallback() {
@@ -115,12 +112,15 @@ class TableComponent extends HTMLElement {
         // Add or update rows in the Map
         for (let i = 0; i < dataArray.length; i++) {
             const newData = dataArray[i];
+            // Update existing row
             if (this.rows.has(newData.id)) {
                 console.log('Updating row with id', newData.id);
-                this.rows.set(newData.id, newData);  // Update existing row
-            } else {
+                this.rows.set(newData.id, newData);
+            }
+            // Add new row
+            else {
                 console.log('Adding new row with id', newData.id);
-                this.rows.set(newData.id, newData);  // Add new row
+                this.rows.set(newData.id, newData);
             }
         }
 
