@@ -1,11 +1,14 @@
 class TableComponent extends HTMLElement {
     static SHADOW_ROOT_MODE = 'open';
+    static #DEFAULT_SORT_FUNCTION = (a, b) => a.id - b.id;
 
-    #numberOfRowsVisible = 20;
-    #updateRequested = false;
-    #ready = false;
     #columns = [];
+    #idField = 'id';
+    #numberOfRowsVisible = 20;
+    #ready = false;
+    #rowsById = new Map();
     #sortedRows = [];
+    #updateRequested = false;
 
     constructor() {
         super();
@@ -69,34 +72,25 @@ class TableComponent extends HTMLElement {
             const newRows = JSON.parse(event.data);
 
             if (!this.#ready && newRows.length > 0) {
-                this.initialiseTable(newRows);
+                this.#initialiseTable(newRows);
                 this.#ready = true;
             }
 
             if (!this.#updateRequested) {
                 this.#updateRequested = true;
+                this.#sortRows(newRows);
 
-                for (let i = 0; i < newRows.length; i++) {
-                    const newRow = newRows[i];
-                    const existingRowIndex = this.#sortedRows.findIndex(row => row.id === newRow.id);
-
-                    if (existingRowIndex !== -1) {
-                        this.#sortedRows[existingRowIndex] = newRow;
-                    } else {
-                        this.#sortedRows.push(newRow);
-                    }
-                }
-
-                this.sortRows();
-
-                requestAnimationFrame(() => this.renderMessageToScreen());
+                requestAnimationFrame(() => {
+                    this.#renderVisibleRows();
+                    this.#updateRequested = false;
+                });
             }
         });
 
         this.ws.addEventListener('error', (err) => console.error('WebSocket error', err));
         this.ws.addEventListener('close', () => console.info('WebSocket connection closed'));
 
-        this.pager.addEventListener('input', () => this.renderVisibleRows());
+        this.pager.addEventListener('input', () => this.#renderVisibleRows());
     }
 
     disconnectedCallback() {
@@ -105,9 +99,13 @@ class TableComponent extends HTMLElement {
         }
     }
 
-    initialiseTable(dataArray) {
+    #initialiseTable(dataArray) {
         // Set columns based on the first row of data
         this.#columns = Object.keys(dataArray[0]).map(key => ({ name: key, key }));
+
+        if (!Object.keys(dataArray[0]).includes('id')) {
+            console.error('The message did not contain the required GUID field, `' + this.#idField + '`')
+        }
 
         // Set the table headers
         const headerRow = document.createElement('tr');
@@ -129,36 +127,50 @@ class TableComponent extends HTMLElement {
         // Add data rows
         for (let i = 1; i <= this.#numberOfRowsVisible; i++) {
             const thisRowElement = rowElement.cloneNode(true);
-            thisRowElement.dataset.id = i;
+            thisRowElement.dataset.idx = i;
             this.tbody.appendChild(thisRowElement);
         }
     }
 
-    renderMessageToScreen() {
-        this.renderVisibleRows();
-        this.#updateRequested = false;
+    // Should allow a sort func as arg
+    #sortRows(newRows) {
+        // Process new rows
+        for (let i = 0; i < newRows.length; i++) {
+            const newRow = newRows[i];
+            const existingRow = this.#rowsById.get(newRow.id);
+
+            if (existingRow) {
+                // If the row exists, update it
+                this.#rowsById.set(newRow.id, newRow);
+            } else {
+                // If the row doesn't exist, add it
+                this.#rowsById.set(newRow.id, newRow);
+            }
+        }
+
+        // Sort rows
+        // this.#sortedRows = Array.from(this.#rowsById.values()).sort((a, b) => a.id - b.id);
+        this.#sortedRows = [];
+        for (let [, value] of this.#rowsById) {
+            this.#sortedRows.push(value);
+        }
+        this.#sortedRows.sort(TableComponent.#DEFAULT_SORT_FUNCTION);
     }
 
-    // expose
-    sortRows() {
-        this.#sortedRows.sort((a, b) => a.id - b.id);
-    }
-
-    renderVisibleRows() {
+    #renderVisibleRows() {
         const start = parseInt(this.pager.value, 10);
 
         const visibleRows = this.#sortedRows.slice(start, start + this.#numberOfRowsVisible);
 
         for (let rowIndex = 0; rowIndex < visibleRows.length; rowIndex++) {
             const rowData = visibleRows[rowIndex];
-            const rowElement = this.tbody.querySelector(`[data-id="${rowIndex + 1}"]`);
+            const rowElement = this.tbody.querySelector(`[data-idx="${rowIndex + 1}"]`);
 
             if (rowElement) {
                 for (let colIndex = 0; colIndex < this.#columns.length; colIndex++) {
                     const col = this.#columns[colIndex];
                     const cell = rowElement.querySelector(`[data-key="${col.key}"]`);
 
-                    // Update the cell content only if it has changed
                     if (cell && cell.textContent !== rowData[col.key]) {
                         cell.textContent = rowData[col.key] || '';
                     }
@@ -167,9 +179,9 @@ class TableComponent extends HTMLElement {
         }
     }
 
-    updatePagerMax() {
+    #updatePagerMax() {
         this.pager.max = Math.max(0, this.#sortedRows.length > this.#numberOfRowsVisible ? this.#sortedRows.length - this.#numberOfRowsVisible : 0);
-        this.renderVisibleRows();
+        this.#renderVisibleRows();
     }
 }
 
