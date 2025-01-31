@@ -51,7 +51,7 @@ Updates the text content of the table cells if they change are within the visibl
 
 ## Benchmark
 
-Supply a `benchmark='true'` attribute.
+Supply a `benchmark='true'` attribute to get benchmarks to the console eery 1,000 messages.
 
 Sending between 1-50 messages every 10 ms for a dataset of 100 items, on my old 64GB i7 running Windoze 10, whilst the app isn't touched and I'm watching a video on PooTube:
 
