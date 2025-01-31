@@ -2,6 +2,10 @@
 
 An experiment to create a vanilla Web Component that provides a window on websocket data that updates as quickly as possible, with legible code.
 
+Renders a table with a specific number of rows that acts as a movable data window on a set of data of unspecified size.
+
+Updates the text content of the table cells if they change are within the visible range.
+
 Conscously not included: 
 
 - No protocol to specify columns and types

@@ -4,7 +4,8 @@ import { WebSocketServer } from 'ws';
 import dotenv from 'dotenv';
 
 const SEND_INTERVAL_MS = 100;
-const MAX_ROWS = 30;
+const MAX_ROWS = 50;
+const MAX_ID = 1000;
 
 dotenv.config();
 
@@ -30,9 +31,11 @@ wss.on('connection', (ws) => {
 
 function sendTest(ws) {
     const interval = setInterval(() => {
+        // Should send a variable number of rows with a GUID in a wide range. Dupes are ok
         const rowsToAdd = Math.floor(Math.random() * MAX_ROWS);
         let testData = [];
-        for (let id = 1; id <= rowsToAdd; id++) {
+        for (let i = 1; i <= rowsToAdd; i++) {
+            const id = Math.floor(Math.random() * MAX_ID);
             testData.push(
                 {
                     id: 'id_' + id,

@@ -1,12 +1,12 @@
 class TableComponent extends HTMLElement {
     static SHADOW_ROOT_MODE = 'open';
-    static #DEFAULT_SORT_FUNCTION = (a, b) => a.id - b.id;
 
     #columns = [];
-    #idField = 'id';
+    #idFieldName = 'id';
+    #sortFieldName = undefined;
     #numberOfRowsVisible = 20;
     #ready = false;
-    #rowsById = new Map();
+    #rowsByGuid = new Map();
     #sortedRows = [];
     #updateRequested = false;
 
@@ -63,6 +63,9 @@ class TableComponent extends HTMLElement {
             this.pager.max = this.#numberOfRowsVisible;
         }
 
+        this.#idFieldName = this.getAttribute('guid-field') || this.#idFieldName;
+        this.#sortFieldName = this.#idFieldName;
+
         this.ws.addEventListener('open', async () => {
             this.ws.send(JSON.stringify({ type: 'connection_ack', message: 'hello' }));
             console.info('WebSocket connected');
@@ -78,7 +81,7 @@ class TableComponent extends HTMLElement {
 
             if (!this.#updateRequested) {
                 this.#updateRequested = true;
-                this.#sortRows(newRows);
+                this.processNewData(newRows);
 
                 requestAnimationFrame(() => {
                     this.#renderVisibleRows();
@@ -104,7 +107,7 @@ class TableComponent extends HTMLElement {
         this.#columns = Object.keys(dataArray[0]).map(key => ({ name: key, key }));
 
         if (!Object.keys(dataArray[0]).includes('id')) {
-            console.error('The message did not contain the required GUID field, `' + this.#idField + '`')
+            console.error('The message did not contain the required GUID field, `' + this.#idFieldName + '`')
         }
 
         // Set the table headers
@@ -133,28 +136,33 @@ class TableComponent extends HTMLElement {
     }
 
     // Should allow a sort func as arg
-    #sortRows(newRows) {
+    processNewData(newRows) {
         // Process new rows
         for (let i = 0; i < newRows.length; i++) {
             const newRow = newRows[i];
-            const existingRow = this.#rowsById.get(newRow.id);
+            const existingRow = this.#rowsByGuid.get(newRow[this.#idFieldName]);
 
             if (existingRow) {
                 // If the row exists, update it
-                this.#rowsById.set(newRow.id, newRow);
+                this.#rowsByGuid.set(newRow[this.#idFieldName], newRow);
             } else {
                 // If the row doesn't exist, add it
-                this.#rowsById.set(newRow.id, newRow);
+                this.#rowsByGuid.set(newRow[this.#idFieldName], newRow);
             }
         }
 
         // Sort rows
         // this.#sortedRows = Array.from(this.#rowsById.values()).sort((a, b) => a.id - b.id);
         this.#sortedRows = [];
-        for (let [, value] of this.#rowsById) {
+        for (let [, value] of this.#rowsByGuid) {
             this.#sortedRows.push(value);
         }
-        this.#sortedRows.sort(TableComponent.#DEFAULT_SORT_FUNCTION);
+
+        this.#sortedRows.sort(
+            (a, b) => ('' + a[this.#sortFieldName]).localeCompare(b[this.#sortFieldName])
+        );
+
+        this.#updatePagerMax();
     }
 
     #renderVisibleRows() {
