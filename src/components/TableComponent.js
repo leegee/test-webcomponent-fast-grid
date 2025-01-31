@@ -7,7 +7,7 @@ class TableComponent extends HTMLElement {
     #numberOfRowsVisible = 20;
     #ready = false;
     #rowsByGuid = new Map();
-    #rowElements = [];
+    #rowsOfCellElements = [];
     #sortedRows = [];
     #updateRequested = false;
     #benchmarkHelper = undefined;
@@ -26,7 +26,7 @@ class TableComponent extends HTMLElement {
             }
             th, td {
               border: var(--foo-cell-border, '1px solid grey');
-              padding: var(--foo-cell-padding, '8pt');
+              padding: var(--foo-cell-padding, 8pt);
               text-align: left;
             }
             #pager {
@@ -34,7 +34,7 @@ class TableComponent extends HTMLElement {
             }
             #pager::-webkit-slider-runnable-track {
                 background: var(--foo-pager-background, 'grey');
-                width: var(--foo-pager-width, '2pt');
+                width: var(--foo-pager-width, 2pt);
             }
             #pager::-webkit-slider-thumb {
                 margin-left: -0.5em;
@@ -129,39 +129,36 @@ class TableComponent extends HTMLElement {
 
         // Set a data row template
         const rowElement = document.createElement('tr');
+        const cells = [];
         for (let i = 0; i < this.#columns.length; i++) {
             const td = document.createElement('td');
             td.dataset.key = this.#columns[i].key;
             rowElement.appendChild(td);
+            cells.push(td);
         }
 
         // Add data rows
         for (let i = 0; i < this.#numberOfRowsVisible; i++) {
-            const thisRowElement = rowElement.cloneNode(true);
-            thisRowElement.dataset.idx = i;
-            this.tbody.appendChild(thisRowElement);
-            this.#rowElements.push(thisRowElement);
+            const row = rowElement.cloneNode(true);
+            row.dataset.idx = i;
+            this.tbody.appendChild(row);
+            const cells = Array.from(row.querySelectorAll('td'));
+            this.#rowsOfCellElements.push(cells);
         }
     }
 
-    // Should allow a sort func as arg
     processNewData(newRows) {
-        // Process new rows
         for (let i = 0; i < newRows.length; i++) {
             const newRow = newRows[i];
             const existingRow = this.#rowsByGuid.get(newRow[this.#idFieldName]);
 
             if (existingRow) {
-                // If the row exists, update it
                 this.#rowsByGuid.set(newRow[this.#idFieldName], newRow);
             } else {
-                // If the row doesn't exist, add it
                 this.#rowsByGuid.set(newRow[this.#idFieldName], newRow);
             }
         }
 
-        // Sort rows
-        // this.#sortedRows = Array.from(this.#rowsById.values()).sort((a, b) => a.id - b.id);
         this.#sortedRows = [];
         for (let [, value] of this.#rowsByGuid) {
             this.#sortedRows.push(value);
@@ -176,19 +173,15 @@ class TableComponent extends HTMLElement {
 
     #renderVisibleRows() {
         const start = parseInt(this.pager.value, 10);
-
         const visibleRows = this.#sortedRows.slice(start, start + this.#numberOfRowsVisible);
 
         for (let rowIndex = 0; rowIndex < visibleRows.length; rowIndex++) {
-            const rowData = visibleRows[rowIndex];
-
-            if (this.#rowElements[rowIndex]) {
+            if (this.#rowsOfCellElements[rowIndex]) {
                 for (let colIndex = 0; colIndex < this.#columns.length; colIndex++) {
-                    const col = this.#columns[colIndex];
-                    const cell = this.#rowElements[rowIndex].querySelector(`[data-key="${col.key}"]`);
-
-                    if (cell && cell.textContent !== rowData[col.key]) {
-                        cell.textContent = rowData[col.key] || '';
+                    if (this.#rowsOfCellElements[rowIndex][colIndex]
+                        && this.#rowsOfCellElements[rowIndex][colIndex].textContent !== visibleRows[rowIndex][this.#columns[colIndex].key]
+                    ) {
+                        this.#rowsOfCellElements[rowIndex][colIndex].textContent = visibleRows[rowIndex][this.#columns[colIndex].key] || '';
                     }
                 }
             }

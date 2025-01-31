@@ -55,20 +55,25 @@ Supply a `benchmark='true'` attribute.
 
 Sending between 1-50 messages every 10 ms for a dataset of 100 items, on my old 64GB i7 running Windoze 10, whilst the app isn't touched and I'm watching a video on PooTube:
 
-    Received: 1000 messages in 8.99s
-    Throughput: 111.25 messages/sec
-    Heap Used: 11.29 MB
-    Average FPS: 60.34
+    Received    : 1000 messages in 8.33s
+    Throughput  : 120.00 messages/sec
+    Heap Used   : 7.28 MB
+    Average FPS : 60.30
 
-    Received: 2000 messages in 32.81s
-    Throughput: 60.97 messages/sec
-    Heap Used: 10.37 MB
-    Average FPS: 60.17
+    Received    : 2000 messages in 16.67s
+    Throughput  : 120.00 messages/sec
+    Heap Used    : 7.06 MB
+    Average FPS  : 60.21
 
-    Received: 3000 messages in 41.16s
-    Throughput: 72.89 messages/sec
-    Heap Used: 10.21 MB
-    Average FPS: 60.11
+    Received     : 3000 messages in 25.00s
+    Throughput   : 120.00 messages/sec
+    Heap Used    : 7.21 MB
+    Average FPS  : 60.17
+
+    Received     : 4000 messages in 33.37s
+    Throughput   : 119.88 messages/sec
+    Heap Used    : 7.90 MB
+    Average FPS  : 60.39
 
 ## Author 
 
