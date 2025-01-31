@@ -1,4 +1,4 @@
-# Fast Data Table
+# Test: A Web Component for A Fast Data Grid
 
 An experiment to create a vanilla Web Component that provides a window on websocket data that updates as quickly as possible, with legible code.
 
