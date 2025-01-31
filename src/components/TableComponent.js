@@ -7,6 +7,7 @@ class TableComponent extends HTMLElement {
     #numberOfRowsVisible = 20;
     #ready = false;
     #rowsByGuid = new Map();
+    #rowElements = [];
     #sortedRows = [];
     #updateRequested = false;
     #benchmarkHelper = undefined;
@@ -139,6 +140,7 @@ class TableComponent extends HTMLElement {
             const thisRowElement = rowElement.cloneNode(true);
             thisRowElement.dataset.idx = i;
             this.tbody.appendChild(thisRowElement);
+            this.#rowElements.push(thisRowElement);
         }
     }
 
@@ -179,12 +181,11 @@ class TableComponent extends HTMLElement {
 
         for (let rowIndex = 0; rowIndex < visibleRows.length; rowIndex++) {
             const rowData = visibleRows[rowIndex];
-            const rowElement = this.tbody.querySelector(`[data-idx="${rowIndex}"]`);
 
-            if (rowElement) {
+            if (this.#rowElements[rowIndex]) {
                 for (let colIndex = 0; colIndex < this.#columns.length; colIndex++) {
                     const col = this.#columns[colIndex];
-                    const cell = rowElement.querySelector(`[data-key="${col.key}"]`);
+                    const cell = this.#rowElements[rowIndex].querySelector(`[data-key="${col.key}"]`);
 
                     if (cell && cell.textContent !== rowData[col.key]) {
                         cell.textContent = rowData[col.key] || '';
