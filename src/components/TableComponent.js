@@ -5,8 +5,7 @@ class TableComponent extends HTMLElement {
     #updateRequested = false;
     #ready = false;
     #columns = [];
-    #rowCache = new Map();
-    #sortedRows = [];  // New array to store sorted rows by 'id'
+    #sortedRows = [];
 
     constructor() {
         super();
@@ -77,21 +76,17 @@ class TableComponent extends HTMLElement {
             if (!this.#updateRequested) {
                 this.#updateRequested = true;
 
-                // Process new rows
                 for (let i = 0; i < newRows.length; i++) {
                     const newRow = newRows[i];
                     const existingRowIndex = this.#sortedRows.findIndex(row => row.id === newRow.id);
 
                     if (existingRowIndex !== -1) {
-                        // If the row exists in sortedRows, update it
                         this.#sortedRows[existingRowIndex] = newRow;
                     } else {
-                        // If the row doesn't exist, add it to the sortedRows
                         this.#sortedRows.push(newRow);
                     }
                 }
 
-                // Sort rows after updating
                 this.sortRows();
 
                 requestAnimationFrame(() => this.renderMessageToScreen());
