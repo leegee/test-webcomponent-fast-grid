@@ -1,14 +1,19 @@
+/**
+ * TODO: 
+ * protocol to specify columns and types
+ * 
+ */
 class TableComponent extends HTMLElement {
     numberOfRowsVisible = 10;
+    ready = false;
+    columns = [];
+    rows = new Map();
+    lastReceivedData = null;
+    updateRequested = false;
 
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-        this.columns = [];
-        this.rows = new Map();
-        this.lastReceivedData = null;
-        this.updateRequested = false;
-
         this.shadowRoot.innerHTML = `
           <style>
             main {
@@ -45,20 +50,18 @@ class TableComponent extends HTMLElement {
     }
 
     connectedCallback() {
-        this.ws.addEventListener('open', () => {
+        this.ws.addEventListener('open', async () => {
             this.ws.send(JSON.stringify({ type: 'connection_ack', message: 'hello' }));
-            console.log('WebSocket connected');
+            console.info('WebSocket connected');
         });
 
         this.ws.addEventListener('message', (event) => {
             const newRows = JSON.parse(event.data);
 
-            if (this.columns.length === 0 && newRows.length > 0) {
+            if (!this.ready && newRows.length > 0) {
                 this.initialiseTable(newRows);
+                this.ready = true;
             }
-
-            newRows.forEach(row => this.rows.set(row.id, row));
-            this.updatePagerMax();
 
             if (!this.updateRequested) {
                 this.updateRequested = true;
@@ -108,23 +111,29 @@ class TableComponent extends HTMLElement {
     }
 
     renderMessageToScreen(newRows) {
-        newRows.forEach(row => this.rows.set(row.id, row));
+        for (let i = 0; i < newRows.length; i++) {
+            this.rows.set(newRows[i].id, newRows[i]);
+        }
         this.renderVisibleRows();
         this.updateRequested = false;
     }
 
     renderVisibleRows() {
         const start = parseInt(this.pager.value, 10);
-        // const end = start + this.numberOfRowsVisible;
 
         for (let i = 0; i < this.numberOfRowsVisible; i++) {
             const rowData = this.rows.get((start + i).toString());
+            if (!rowData) {
+                console.log(`i=${i} start=${start} rowNo=${start + i}, `, this.rows)
+                console.log(`could not get ${start + i} from this.rows `);
+                debugger;
+            }
+
             let rowElement = this.tbody.querySelector(`[data-id="${i}"]`);
 
             if (!rowElement) {
                 console.log('no row el for ', rowData.id);
             } else {
-                console.log('DO ROW ', i, rowData, this.rows);
                 this.updateRow(rowElement, rowData);
             }
         }
@@ -140,7 +149,7 @@ class TableComponent extends HTMLElement {
     }
 
     updatePagerMax() {
-        this.pager.max = Math.max(0, this.rows.size - this.numberOfRowsVisible);
+        this.pager.max = Math.max(0, this.rows.size > this.numberOfRowsVisible ? this.rows.size - this.numberOfRowsVisible : 0);
         this.renderVisibleRows();
     }
 }
