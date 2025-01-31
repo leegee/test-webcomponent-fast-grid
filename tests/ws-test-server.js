@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 
 const SEND_INTERVAL_MS = 100;
 const MAX_ROWS = 50;
-const MAX_ID = 1000;
+const MAX_ID = 100;
 
 dotenv.config();
 
