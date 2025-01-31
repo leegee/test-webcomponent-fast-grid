@@ -6,10 +6,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Web Component Data Grid Example</title>
   <link rel="stylesheet" href="src/styles.css">
+  <style>
+    html * {
+      background: #111;
+      color: #ddd;
+    }
+
+    foo-table {
+      --foo-cell-border: 1px solid #555;
+      --foo-cell-padding: 8pt;
+    }
+  </style>
 </head>
 
 <body>
-  <foo-table websocket-url="ws://localhost:8023"></foo-table>
+  <foo-table websocket-url="ws://localhost:8023" rows="10"></foo-table>
   <script type="module" src="src/main.js"></script>
 </body>
 

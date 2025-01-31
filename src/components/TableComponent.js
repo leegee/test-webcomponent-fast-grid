@@ -2,18 +2,27 @@
  * TODO: 
  * protocol to specify columns and types
  * 
+ * NOTES
+ * 
+ * Functional calls are slow, so a C-style for loop is the fastest,
+ * yet keeping some for legibility
+ * 
+ * Maps are fast.
+ * 
  */
+
 class TableComponent extends HTMLElement {
-    numberOfRowsVisible = 10;
-    ready = false;
-    columns = [];
-    rows = new Map();
-    lastReceivedData = null;
-    updateRequested = false;
+    static SHADOW_ROOT_MODE = 'open';
+
+    #numberOfRowsVisible = 10;
+    #updateRequested = false;
+    #ready = false;
+    #columns = [];
+    #rows = new Map();
 
     constructor() {
         super();
-        this.attachShadow({ mode: 'open' });
+        this.attachShadow({ mode: TableComponent.SHADOW_ROOT_MODE });
         this.shadowRoot.innerHTML = `
           <style>
             main {
@@ -24,8 +33,8 @@ class TableComponent extends HTMLElement {
               border-collapse: collapse;
             }
             th, td {
-              border: 1px solid grey;
-              padding: 8pt;
+              border: var(--foo-cell-border, '1px solid grey');
+              padding: var(--foo-cell-padding, '8pt');
               text-align: left;
             }
             #pager {
@@ -38,7 +47,7 @@ class TableComponent extends HTMLElement {
               <thead></thead>
               <tbody></tbody>
             </table>
-            <input id="pager" type="range" class="scrollbar" min="0" max="${this.numberOfRowsVisible}" value="0" />
+            <input id="pager" type="range" class="scrollbar" min="0" max="${this.#numberOfRowsVisible}" value="0" />
           </main>
         `;
 
@@ -50,6 +59,12 @@ class TableComponent extends HTMLElement {
     }
 
     connectedCallback() {
+        const numberOfRowsVisible = this.getAttribute('rows');
+        if (Number(numberOfRowsVisible) > 0) {
+            this.#numberOfRowsVisible = Number(numberOfRowsVisible);
+            this.pager.max = this.#numberOfRowsVisible;
+        }
+
         this.ws.addEventListener('open', async () => {
             this.ws.send(JSON.stringify({ type: 'connection_ack', message: 'hello' }));
             console.info('WebSocket connected');
@@ -58,19 +73,19 @@ class TableComponent extends HTMLElement {
         this.ws.addEventListener('message', (event) => {
             const newRows = JSON.parse(event.data);
 
-            if (!this.ready && newRows.length > 0) {
+            if (!this.#ready && newRows.length > 0) {
                 this.initialiseTable(newRows);
-                this.ready = true;
+                this.#ready = true;
             }
 
-            if (!this.updateRequested) {
-                this.updateRequested = true;
+            if (!this.#updateRequested) {
+                this.#updateRequested = true;
                 requestAnimationFrame(() => this.renderMessageToScreen(newRows));
             }
         });
 
         this.ws.addEventListener('error', (err) => console.error('WebSocket error', err));
-        this.ws.addEventListener('close', () => console.log('WebSocket connection closed'));
+        this.ws.addEventListener('close', () => console.info('WebSocket connection closed'));
 
         this.pager.addEventListener('input', () => this.renderVisibleRows());
     }
@@ -83,27 +98,27 @@ class TableComponent extends HTMLElement {
 
     initialiseTable(dataArray) {
         // Set columns based on the first row of data
-        this.columns = Object.keys(dataArray[0]).map(key => ({ name: key, key }));
+        this.#columns = Object.keys(dataArray[0]).map(key => ({ name: key, key }));
 
         // Set the table headers
         const headerRow = document.createElement('tr');
-        for (let i = 0; i < this.columns.length; i++) {
+        for (let i = 0; i < this.#columns.length; i++) {
             const th = document.createElement('th');
-            th.textContent = this.columns[i].name;
+            th.textContent = this.#columns[i].name;
             headerRow.appendChild(th);
         }
         this.thead.appendChild(headerRow);
 
         // Set a data row template
         const rowElement = document.createElement('tr');
-        for (let i = 0; i < this.columns.length; i++) {
+        for (let i = 0; i < this.#columns.length; i++) {
             const td = document.createElement('td');
-            td.dataset.key = this.columns[i].key;
+            td.dataset.key = this.#columns[i].key;
             rowElement.appendChild(td);
         }
 
         // Add data rows
-        for (let i = 0; i < this.numberOfRowsVisible; i++) {
+        for (let i = 0; i < this.#numberOfRowsVisible; i++) {
             const thisRowElement = rowElement.cloneNode(true);
             thisRowElement.dataset.id = i;
             this.tbody.appendChild(thisRowElement);
@@ -112,44 +127,35 @@ class TableComponent extends HTMLElement {
 
     renderMessageToScreen(newRows) {
         for (let i = 0; i < newRows.length; i++) {
-            this.rows.set(newRows[i].id, newRows[i]);
+            this.#rows.set(newRows[i].id, newRows[i]);
         }
         this.renderVisibleRows();
-        this.updateRequested = false;
+        this.#updateRequested = false;
     }
 
     renderVisibleRows() {
         const start = parseInt(this.pager.value, 10);
 
-        for (let i = 0; i < this.numberOfRowsVisible; i++) {
-            const rowData = this.rows.get((start + i).toString());
+        for (let i = 0; i < this.#numberOfRowsVisible; i++) {
+            const rowData = this.#rows.get((start + i).toString());
             if (!rowData) {
-                console.log(`i=${i} start=${start} rowNo=${start + i}, `, this.rows)
-                console.log(`could not get ${start + i} from this.rows `);
-                debugger;
+                continue;
             }
 
             let rowElement = this.tbody.querySelector(`[data-id="${i}"]`);
 
-            if (!rowElement) {
-                console.log('no row el for ', rowData.id);
-            } else {
-                this.updateRow(rowElement, rowData);
+            for (let i = 0; i < this.#columns.length; i++) {
+                const col = this.#columns[i];
+                const cell = rowElement.querySelector(`[data-key="${col.key}"]`);
+                if (cell && cell.textContent !== rowData[col.key]) {
+                    cell.textContent = rowData[col.key] || '';
+                }
             }
         }
     }
 
-    updateRow(rowElement, rowData) {
-        this.columns.forEach(col => {
-            const cell = rowElement.querySelector(`[data-key="${col.key}"]`);
-            if (cell) {
-                cell.textContent = rowData[col.key] || '';
-            }
-        });
-    }
-
     updatePagerMax() {
-        this.pager.max = Math.max(0, this.rows.size > this.numberOfRowsVisible ? this.rows.size - this.numberOfRowsVisible : 0);
+        this.pager.max = Math.max(0, this.#rows.size > this.#numberOfRowsVisible ? this.#rows.size - this.#numberOfRowsVisible : 0);
         this.renderVisibleRows();
     }
 }
