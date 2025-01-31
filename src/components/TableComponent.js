@@ -9,6 +9,7 @@ class TableComponent extends HTMLElement {
     #rowsByGuid = new Map();
     #sortedRows = [];
     #updateRequested = false;
+    #benchmarkHelper = undefined;
 
     constructor() {
         super();
@@ -32,7 +33,7 @@ class TableComponent extends HTMLElement {
             }
             #pager::-webkit-slider-runnable-track {
                 background: var(--foo-pager-background, 'grey');
-                width: 2pt;
+                width: var(--foo-pager-width, '2pt');
             }
             #pager::-webkit-slider-thumb {
                 margin-left: -0.5em;
@@ -42,21 +43,21 @@ class TableComponent extends HTMLElement {
 
           <main>
             <table>
-              <thead></thead>
-              <tbody></tbody>
+              <thead id="thead></thead>
+              <tbody id="tbody"></tbody>
             </table>
-            <input id="pager" type="range" class="scrollbar" min="0" max="${this.#numberOfRowsVisible}" value="0" />
+            <input id="pager" type="range" min="0" max="${this.#numberOfRowsVisible}" value="0" />
           </main>
         `;
 
-        this.tbody = this.shadowRoot.querySelector('tbody');
-        this.thead = this.shadowRoot.querySelector('thead');
+        this.tbody = this.shadowRoot.getElementById('tbody');
+        this.thead = this.shadowRoot.getElementById('thead');
         this.pager = this.shadowRoot.getElementById('pager');
 
         this.ws = new WebSocket(this.getAttribute('websocket-url'));
     }
 
-    connectedCallback() {
+    async connectedCallback() {
         const numberOfRowsVisible = this.getAttribute('rows');
         if (Number(numberOfRowsVisible) > 0) {
             this.#numberOfRowsVisible = Number(numberOfRowsVisible);
@@ -94,6 +95,12 @@ class TableComponent extends HTMLElement {
         this.ws.addEventListener('close', () => console.info('WebSocket connection closed'));
 
         this.pager.addEventListener('input', () => this.#renderVisibleRows());
+
+        if (this.getAttribute('benchmark') === 'true') {
+            const { BenchmarkHelper } = await import('../BenchmarkHelper');
+            this.#benchmarkHelper = new BenchmarkHelper();
+            this.#benchmarkHelper.startBenchmark(this.ws);
+        }
     }
 
     disconnectedCallback() {
@@ -184,6 +191,10 @@ class TableComponent extends HTMLElement {
                     }
                 }
             }
+        }
+
+        if (this.#benchmarkHelper) {
+            this.#benchmarkHelper.recordMessage();
         }
     }
 
