@@ -40,6 +40,15 @@ class TableComponent extends HTMLElement {
             #pager {
               writing-mode: vertical-lr;
             }
+            #pager::-webkit-slider-runnable-track {
+                background: var(--foo-pager-background, 'grey');
+                width: 2pt;
+            }
+            #pager::-webkit-slider-thumb {
+                margin-left: -0.5em;
+                width: 1em;
+            }
+
           </style>
 
           <main>
