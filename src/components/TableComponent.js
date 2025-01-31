@@ -43,15 +43,15 @@ class TableComponent extends HTMLElement {
 
           <main>
             <table>
-              <thead id="thead></thead>
+              <thead id="thead"></thead>
               <tbody id="tbody"></tbody>
             </table>
             <input id="pager" type="range" min="0" max="${this.#numberOfRowsVisible}" value="0" />
           </main>
         `;
 
-        this.tbody = this.shadowRoot.getElementById('tbody');
         this.thead = this.shadowRoot.getElementById('thead');
+        this.tbody = this.shadowRoot.getElementById('tbody');
         this.pager = this.shadowRoot.getElementById('pager');
 
         this.ws = new WebSocket(this.getAttribute('websocket-url'));
@@ -135,7 +135,7 @@ class TableComponent extends HTMLElement {
         }
 
         // Add data rows
-        for (let i = 1; i <= this.#numberOfRowsVisible; i++) {
+        for (let i = 0; i < this.#numberOfRowsVisible; i++) {
             const thisRowElement = rowElement.cloneNode(true);
             thisRowElement.dataset.idx = i;
             this.tbody.appendChild(thisRowElement);
@@ -179,7 +179,7 @@ class TableComponent extends HTMLElement {
 
         for (let rowIndex = 0; rowIndex < visibleRows.length; rowIndex++) {
             const rowData = visibleRows[rowIndex];
-            const rowElement = this.tbody.querySelector(`[data-idx="${rowIndex + 1}"]`);
+            const rowElement = this.tbody.querySelector(`[data-idx="${rowIndex}"]`);
 
             if (rowElement) {
                 for (let colIndex = 0; colIndex < this.#columns.length; colIndex++) {
