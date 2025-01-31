@@ -127,7 +127,7 @@ class TableComponent extends HTMLElement {
         }
 
         // Add data rows
-        for (let i = 0; i < this.#numberOfRowsVisible; i++) {
+        for (let i = 1; i <= this.#numberOfRowsVisible; i++) {
             const thisRowElement = rowElement.cloneNode(true);
             thisRowElement.dataset.id = i;
             this.tbody.appendChild(thisRowElement);
@@ -145,7 +145,7 @@ class TableComponent extends HTMLElement {
     renderVisibleRows() {
         const start = parseInt(this.pager.value, 10);
 
-        for (let i = 0; i < this.#numberOfRowsVisible; i++) {
+        for (let i = 1; i <= this.#numberOfRowsVisible; i++) {
             const rowData = this.#rows.get((start + i).toString());
             if (!rowData) {
                 continue;
