@@ -4,6 +4,7 @@ import { fixture, html, waitUntil } from '@open-wc/testing';
 import '../../src/components/TableComponent';
 
 function getPopulatedRows(root) {
+    // console.log(root.innerHTML);
     return [...root.querySelectorAll('tbody tr')].filter(tr =>
         [...tr.querySelectorAll('td')].some(td => td.textContent.trim() !== '')
     );
@@ -28,8 +29,10 @@ describe('FooTable WebSocket Data Handling', () => {
             }
             close() { }
             send(data) {
+                console.log('try to send...')
                 setTimeout(() => { // Simulate a delayed response
                     if (this.listeners['message']) {
+                        console.log('Calling message listener with', data)
                         this.listeners['message']({ data });
                     }
                 }, 10);
@@ -40,20 +43,20 @@ describe('FooTable WebSocket Data Handling', () => {
     });
 
     afterEach(() => {
-        // Restore the original WebSocket after each test
         globalThis.WebSocket = originalWebSocket;
     });
 
     describe('Initial WebSocket Data Handling', () => {
         it('should update table when WebSocket message is received', async () => {
-            // Check that the table is initially empty 
             expect(getPopulatedRows(component.shadowRoot)).to.have.length(0);
 
             mockWebSocket.send(JSON.stringify([{
                 id: 1, name: 'Alice', age: 30, location: 'Paris'
             }]));
 
-            await waitUntil(() => getPopulatedRows(component.shadowRoot).length > 0);
+            await waitUntil(
+                () => getPopulatedRows(component.shadowRoot).length > 0
+            );
 
             const rows = getPopulatedRows(component.shadowRoot);
             expect(rows).to.have.length(1);

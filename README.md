@@ -4,12 +4,12 @@ An experiment to create a vanilla Web Component that provides a window on websoc
 
 ## Test
 
-    npm test
+    bun run test
 
 ## Example
 
-    npm run test:server
-    npm run dev
+    bun run test:server
+    bun run dev
 
 ## Author 
 

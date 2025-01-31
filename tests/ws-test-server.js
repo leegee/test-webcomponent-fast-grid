@@ -32,10 +32,10 @@ function sendTest(ws) {
     const interval = setInterval(() => {
         const rowsToAdd = Math.floor(Math.random() * MAX_ROWS);
         let testData = [];
-        for (let id = 0; id < rowsToAdd; id++) {
+        for (let id = 1; id <= rowsToAdd; id++) {
             testData.push(
                 {
-                    id: id.toString(),
+                    id: id,
                     name: 'Person ' + id + ' ' + Math.random(),
                     age: Math.random(),
                     location: 'Place ' + id
