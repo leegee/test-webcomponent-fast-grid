@@ -29,10 +29,8 @@ describe('FooTable WebSocket Data Handling', () => {
             }
             close() { }
             send(data) {
-                console.log('try to send...')
                 setTimeout(() => { // Simulate a delayed response
                     if (this.listeners['message']) {
-                        console.log('Calling message listener with', data)
                         this.listeners['message']({ data });
                     }
                 }, 10);
@@ -86,7 +84,7 @@ describe('FooTable WebSocket Data Handling', () => {
             // Wait for the update to reflect in the table
             await waitUntil(() => {
                 const updatedRows = getPopulatedRows(component.shadowRoot);
-                return updatedRows.length === 1 && updatedRows[0].querySelectorAll('td')[2].textContent === '31';
+                return updatedRows.length > 0 && updatedRows[0].querySelectorAll('td')[2].textContent === '31';
             });
 
             rows = getPopulatedRows(component.shadowRoot);

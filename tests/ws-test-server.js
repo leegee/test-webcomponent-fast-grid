@@ -35,7 +35,7 @@ function sendTest(ws) {
         for (let id = 1; id <= rowsToAdd; id++) {
             testData.push(
                 {
-                    id: id,
+                    id: 'id_' + id,
                     name: 'Person ' + id + ' ' + Math.random(),
                     age: Math.random(),
                     location: 'Place ' + id

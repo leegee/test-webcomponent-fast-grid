@@ -1,23 +1,3 @@
-/**
- * This is just an experiment.
- * 
- * CONSCOUSLY NOT INCLUDED: 
- * 
- * No protocol to specify columns and types
- * 
- * No callbacks on changes
- * 
- * NOTES
- * 
- * Every message must contain a numeric id. 
- * 
- * Functional calls are slow, so a C-style for loop is the fastest,
- * yet keeping some for legibility.
- * 
- * Maps are fast.
- * 
- */
-
 class TableComponent extends HTMLElement {
     static SHADOW_ROOT_MODE = 'open';
 
@@ -26,6 +6,7 @@ class TableComponent extends HTMLElement {
     #ready = false;
     #columns = [];
     #rowCache = new Map();
+    #sortedRows = [];  // New array to store sorted rows by 'id'
 
     constructor() {
         super();
@@ -55,7 +36,6 @@ class TableComponent extends HTMLElement {
                 margin-left: -0.5em;
                 width: 1em;
             }
-
           </style>
 
           <main>
@@ -96,7 +76,25 @@ class TableComponent extends HTMLElement {
 
             if (!this.#updateRequested) {
                 this.#updateRequested = true;
-                requestAnimationFrame(() => this.renderMessageToScreen(newRows));
+
+                // Process new rows
+                for (let i = 0; i < newRows.length; i++) {
+                    const newRow = newRows[i];
+                    const existingRowIndex = this.#sortedRows.findIndex(row => row.id === newRow.id);
+
+                    if (existingRowIndex !== -1) {
+                        // If the row exists in sortedRows, update it
+                        this.#sortedRows[existingRowIndex] = newRow;
+                    } else {
+                        // If the row doesn't exist, add it to the sortedRows
+                        this.#sortedRows.push(newRow);
+                    }
+                }
+
+                // Sort rows after updating
+                this.sortRows();
+
+                requestAnimationFrame(() => this.renderMessageToScreen());
             }
         });
 
@@ -141,56 +139,42 @@ class TableComponent extends HTMLElement {
         }
     }
 
-    renderMessageToScreen(newRows) {
-        for (let i = 0; i < newRows.length; i++) {
-            if (isNaN(newRows[i].id)) {
-                this.reportError({
-                    text: 'A message was recevied with a non-numeric id field.',
-                    echo: newRows[i],
-                })
-            } else {
-                this.#rowCache.set(Number(newRows[i].id), newRows[i]);
-            }
-        }
+    renderMessageToScreen() {
         this.renderVisibleRows();
         this.#updateRequested = false;
+    }
+
+    // expose
+    sortRows() {
+        this.#sortedRows.sort((a, b) => a.id - b.id);
     }
 
     renderVisibleRows() {
         const start = parseInt(this.pager.value, 10);
 
-        for (let i = 1; i <= this.#numberOfRowsVisible; i++) {
-            // This is a problem if we do not use numeric IDs
-            const rowData = this.#rowCache.get((start + i));
-            if (!rowData) {
-                continue;
-            }
+        const visibleRows = this.#sortedRows.slice(start, start + this.#numberOfRowsVisible);
 
-            let rowElement = this.tbody.querySelector(`[data-id="${i}"]`);
+        for (let rowIndex = 0; rowIndex < visibleRows.length; rowIndex++) {
+            const rowData = visibleRows[rowIndex];
+            const rowElement = this.tbody.querySelector(`[data-id="${rowIndex + 1}"]`);
 
-            for (let i = 0; i < this.#columns.length; i++) {
-                const col = this.#columns[i];
-                const cell = rowElement.querySelector(`[data-key="${col.key}"]`);
-                if (cell && cell.textContent !== rowData[col.key]) {
-                    cell.textContent = rowData[col.key] || '';
+            if (rowElement) {
+                for (let colIndex = 0; colIndex < this.#columns.length; colIndex++) {
+                    const col = this.#columns[colIndex];
+                    const cell = rowElement.querySelector(`[data-key="${col.key}"]`);
+
+                    // Update the cell content only if it has changed
+                    if (cell && cell.textContent !== rowData[col.key]) {
+                        cell.textContent = rowData[col.key] || '';
+                    }
                 }
             }
         }
     }
 
     updatePagerMax() {
-        this.pager.max = Math.max(0, this.#rowCache.size > this.#numberOfRowsVisible ? this.#rowCache.size - this.#numberOfRowsVisible : 0);
+        this.pager.max = Math.max(0, this.#sortedRows.length > this.#numberOfRowsVisible ? this.#sortedRows.length - this.#numberOfRowsVisible : 0);
         this.renderVisibleRows();
-    }
-
-    /**
-     * This could use an exposed callback or toast or throw....
-     * @param {*} args 
-     * @param {string} args.text Human-legible description of the error
-     * @param {object} args.echo The received message
-     */
-    reportError(args) {
-        console.warn(JSON.stringify(args, null, 4));
     }
 }
 
