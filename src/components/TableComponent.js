@@ -56,6 +56,8 @@ class TableComponent extends HTMLElement {
         this.pager = this.shadowRoot.getElementById('pager');
 
         this.ws = new WebSocket(this.getAttribute('websocket-url'));
+
+        this.worker = new Worker(new URL('./TableComponent/sort-worker', import.meta.url), { type: 'module' });
     }
 
     async connectedCallback() {
@@ -96,6 +98,12 @@ class TableComponent extends HTMLElement {
         this.ws.addEventListener('close', () => console.info('WebSocket connection closed'));
 
         this.pager.addEventListener('input', () => this.#renderVisibleRows());
+
+        this.worker.onmessage = (event) => {
+            this.#sortedRows = event.data.sortedRows;
+            this.#rowsByGuid = new Map(event.data.updatedRowsByGuid);
+            this.#updatePagerMax();
+        };
 
         if (this.getAttribute('benchmark') === 'true') {
             const { BenchmarkHelper } = await import('../BenchmarkHelper');
@@ -148,25 +156,12 @@ class TableComponent extends HTMLElement {
     }
 
     processNewData(newRows) {
-        for (let i = 0; i < newRows.length; i++) {
-            const newRow = newRows[i];
-            const existingRow = this.#rowsByGuid.get(newRow[this.#idFieldName]);
-
-            if (existingRow) {
-                this.#rowsByGuid.set(newRow[this.#idFieldName], newRow);
-            } else {
-                this.#rowsByGuid.set(newRow[this.#idFieldName], newRow);
-            }
-        }
-
-        this.#sortedRows = [];
-        for (let [, value] of this.#rowsByGuid) {
-            this.#sortedRows.push(value);
-        }
-
-        this.#sortedRows.sort(
-            (a, b) => ('' + a[this.#sortFieldName]).localeCompare(b[this.#sortFieldName])
-        );
+        this.worker.postMessage({
+            newRows,
+            rowsByGuid: this.#rowsByGuid,
+            idFieldName: this.#idFieldName,
+            sortFieldName: this.#sortFieldName,
+        });
 
         this.#updatePagerMax();
     }
