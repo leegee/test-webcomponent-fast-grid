@@ -10,7 +10,7 @@ class TableComponent extends HTMLElement {
     #sortedRows = [];
     #updateRequested = false;
     #benchmarkHelper = undefined;
-    #cachedCells = []; // Cache for cells
+    #cachedCells = [];
 
     constructor() {
         super();
@@ -107,6 +107,7 @@ class TableComponent extends HTMLElement {
     }
 
     #initialiseTable() {
+        // Set the column types based upon child elements: <foo-column name='ID' key='id' type='string'/>
         const columnElements = Array.from(this.querySelectorAll('foo-column'));
         this.#columns = columnElements.map((colElem) => ({
             name: colElem.getAttribute('name'),
