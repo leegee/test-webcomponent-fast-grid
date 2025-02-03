@@ -35,11 +35,11 @@ class TableComponent extends HTMLElement {
             }
             #pager::-webkit-slider-runnable-track {
                 background: var(--foo-pager-background, 'grey');
-                width: var(--foo-pager-width, '2pt');
+                width: var(--foo-pager-width, 2pt);
             }
             #pager::-webkit-slider-thumb {
-                // margin-left: -0.5em;
-                // width: 1em;
+                margin-left: -0.5em;
+                width: 1em;
             }
           </style>
 
