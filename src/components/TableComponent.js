@@ -8,6 +8,7 @@ class TableComponent extends HTMLElement {
     #numberOfRowsVisible = 20;
     #rowElements = [];
     #rowsByGuid = new Map();
+    #sortMultiplier = 1;
     #sortedRows = [];
     #sortFieldName = undefined;
     #sortFunction = () => void (0);
@@ -24,6 +25,23 @@ class TableComponent extends HTMLElement {
             table {
               width: 100%;
               border-collapse: collapse;
+              table-layout: fixed;
+            }
+            th {
+              cursor: s-resize;
+            }
+            th:before {
+                content: "▼ ";
+                opacity: 50%;
+                font-size: 75%;
+            }
+            th.desc {
+              cursor: n-resize;
+            }
+            th.desc:before {
+                content: "▲ ";
+                opacity: 50%;
+                font-size: 75%;
             }
             th, td {
               border: var(--foo-cell-border, '1px solid grey');
@@ -70,6 +88,8 @@ class TableComponent extends HTMLElement {
         this.#idFieldName = this.getAttribute('guid-field') || this.#idFieldName;
         this.#sortFieldName = this.#idFieldName;
         this.#setSortFunction();
+
+        this.thead.addEventListener('click', this.#columnHeaderClickHander.bind(this));
 
         this.ws.addEventListener('open', async () => {
             this.ws.send(JSON.stringify({ type: 'connection_ack', message: 'hello' }));
@@ -121,6 +141,8 @@ class TableComponent extends HTMLElement {
         const headerRow = document.createElement('tr');
         for (let i = 0; i < this.#columns.length; i++) {
             const th = document.createElement('th');
+            th.dataset.id = this.#columns[i].key;
+            th.dataset.sortMultiplier = '1';
             th.textContent = this.#columns[i].name;
             headerRow.appendChild(th);
         }
@@ -203,19 +225,47 @@ class TableComponent extends HTMLElement {
             console.error('Sort field does not exist in column scheme:', this.#sortFieldName);
             return;
         }
+
+        const sortMultiplier = Number(this.#sortMultiplier);
+
         switch (sortColumn.type) {
             case 'string':
-                this.#sortFunction = (a, b) => ('' + a[this.#sortFieldName]).localeCompare('' + b[this.#sortFieldName]);
+                this.#sortFunction = (a, b) =>
+                    sortMultiplier * ('' + a[this.#sortFieldName]).localeCompare('' + b[this.#sortFieldName]);
                 break;
+
             case 'number':
-                this.#sortFunction = (a, b) => a[this.#sortFieldName] - b[this.#sortFieldName];
+                this.#sortFunction = (a, b) =>
+                    sortMultiplier * (Number(a[this.#sortFieldName]) - Number(b[this.#sortFieldName]));
                 break;
-            case 'date': // So slow, one should use Hungarian dates/ISO-8601/20251213
-                this.#sortFunction = (a, b) => new Date(a[this.#sortFieldName]) - new Date(b[this.#sortFieldName]);
+
+            case 'date':
+                this.#sortFunction = (a, b) =>
+                    sortMultiplier * (new Date(a[this.#sortFieldName]) - new Date(b[this.#sortFieldName]));
                 break;
+
             default:
-                console.error('Unknown type, ' + sortColumn.type)
+                console.error('Unknown type:', sortColumn.type);
         }
+    }
+
+    #columnHeaderClickHander(e) {
+        if (this.#sortFieldName === e.target.dataset.id) {
+            // If clicking on a header a second time, toggle direction
+            if (e.target.dataset.sortMultiplier === '-1') {
+                e.target.classList.remove('desc');
+                e.target.dataset.sortMultiplier = '1';
+                this.#sortMultiplier = 1;
+            } else {
+                e.target.classList.add('desc');
+                e.target.dataset.sortMultiplier = '-1';
+                this.#sortMultiplier = -1;
+            }
+        } else {
+            this.#sortFieldName = e.target.dataset.id;
+        }
+        this.#setSortFunction();
+        this.#update();
     }
 }
 
