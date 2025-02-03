@@ -13,7 +13,7 @@ than using a binary search.
 
 ## To Do
 
-Callbacks on cell changes (eg to add colour to flag changes/trends)
+On cell changes (eg to add colour to flag changes/trends): callbacks, or events? Visible changes or any change?
 
 ## Options 
 
