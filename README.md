@@ -11,9 +11,14 @@ Allows movement of the data window using a separate control: the table remains t
 The current sorting and merging of data looks somewhat naive, but benchmarks show it to be faster
 than using a binary search.
 
-## To Do
+## Out of Scope / Future Work
 
-On cell changes (eg to add colour to flag changes/trends): callbacks, or events? Visible changes or any change?
+If the number of items in the subscription were predetermined, sorting would be unncessary and binary search 
+for insertion points would be faster. However, the component is so fast as it stands....
+
+Change indicators would be useful. Perhaps allowing a column to specifiy that it ought to record changes
+could cause a new column to be added to do just that; the specification would have to specify a time period
+over which to monitor the change (ie up 10% over one minute/hour/day). 
 
 ## Options 
 
