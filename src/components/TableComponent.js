@@ -13,6 +13,9 @@ class TableComponent extends HTMLElement {
     #sortFieldName = undefined;
     #sortFunction = () => void (0);
     #updateRequested = false;
+    #table = undefined;
+    #tbody = undefined;
+    #thead = undefined;
 
     constructor() {
         super();
@@ -25,7 +28,6 @@ class TableComponent extends HTMLElement {
             table {
               width: 100%;
               border-collapse: collapse;
-              table-layout: fixed;
             }
             th {
               cursor: s-resize;
@@ -62,7 +64,7 @@ class TableComponent extends HTMLElement {
           </style>
 
           <main>
-            <table>
+            <table id="table">
               <thead id="thead"></thead>
               <tbody id="tbody"></tbody>
             </table>
@@ -70,8 +72,9 @@ class TableComponent extends HTMLElement {
           </main>
         `;
 
-        this.thead = this.shadowRoot.getElementById('thead');
-        this.tbody = this.shadowRoot.getElementById('tbody');
+        this.#table = this.shadowRoot.getElementById('table');
+        this.#thead = this.shadowRoot.getElementById('thead');
+        this.#tbody = this.shadowRoot.getElementById('tbody');
         this.pager = this.shadowRoot.getElementById('pager');
 
         this.ws = new WebSocket(this.getAttribute('websocket-url'));
@@ -89,7 +92,7 @@ class TableComponent extends HTMLElement {
         this.#sortFieldName = this.#idFieldName;
         this.#setSortFunction();
 
-        this.thead.addEventListener('click', this.#columnHeaderClickHander.bind(this));
+        this.#thead.addEventListener('click', this.#columnHeaderClickHander.bind(this));
 
         this.ws.addEventListener('open', async () => {
             this.ws.send(JSON.stringify({ type: 'connection_ack', message: 'hello' }));
@@ -137,16 +140,24 @@ class TableComponent extends HTMLElement {
             type: colElem.getAttribute('type'),
         }));
 
+        // Create colgruop
+        const colgroup = document.createElement('colgroup');
+
         // Set the table headers
         const headerRow = document.createElement('tr');
         for (let i = 0; i < this.#columns.length; i++) {
+            const col = document.createElement('col');
+            col.part = this.#columns[i].key;
+            colgroup.appendChild(col);
+
             const th = document.createElement('th');
             th.dataset.id = this.#columns[i].key;
             th.dataset.sortMultiplier = '1';
             th.textContent = this.#columns[i].name;
             headerRow.appendChild(th);
         }
-        this.thead.appendChild(headerRow);
+        this.#table.appendChild(colgroup);
+        this.#thead.appendChild(headerRow);
 
         // Set a data row template
         const rowElement = document.createElement('tr');
@@ -160,7 +171,7 @@ class TableComponent extends HTMLElement {
         for (let i = 0; i < this.#numberOfRowsVisible; i++) {
             const thisRowElement = rowElement.cloneNode(true);
             thisRowElement.dataset.idx = i;
-            this.tbody.appendChild(thisRowElement);
+            this.#tbody.appendChild(thisRowElement);
             this.#rowElements.push(thisRowElement);
         }
 

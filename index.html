@@ -16,6 +16,16 @@
       --foo-cell-padding: 8pt;
       --foo-pager-background: #777;
     }
+
+    foo-table::part(id) {
+      width: 10%;
+    }
+
+    foo-table::part(name),
+    foo-table::part(age),
+    foo-table::part(location) {
+      width: 30%;
+    }
   </style>
 </head>
 
