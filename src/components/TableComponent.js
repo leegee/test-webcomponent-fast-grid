@@ -5,7 +5,6 @@ class TableComponent extends HTMLElement {
     #idFieldName = 'id';
     #sortFieldName = undefined;
     #numberOfRowsVisible = 20;
-    #ready = false;
     #rowsByGuid = new Map();
     #rowElements = [];
     #sortedRows = [];
@@ -77,11 +76,6 @@ class TableComponent extends HTMLElement {
 
         this.ws.addEventListener('message', (event) => {
             const newRows = JSON.parse(event.data);
-
-            // if (!this.#ready && newRows.length > 0) {
-            //     this.#initialiseTable(newRows);
-            //     this.#ready = true;
-            // }
 
             if (!this.#updateRequested) {
                 this.#updateRequested = true;
