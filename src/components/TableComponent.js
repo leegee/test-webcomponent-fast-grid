@@ -28,7 +28,7 @@ class TableComponent extends HTMLElement {
             th, td {
               border: var(--foo-cell-border, '1px solid grey');
               padding: var(--foo-cell-padding, '8pt');
-              text-align: left;
+              text-align: var(--foo-cell-align, 'left');;
             }
             #pager {
               writing-mode: vertical-lr;

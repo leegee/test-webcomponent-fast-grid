@@ -34,6 +34,7 @@ Updates the text content of the table cells if they change are within the visibl
     --foo-cell-padding
     --foo-pager-background
     --foo-pager-width
+    --foo-cell-align
 
 ## Code Notes
 
