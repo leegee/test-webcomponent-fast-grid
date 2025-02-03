@@ -4,7 +4,9 @@ An experiment to create a vanilla Web Component that provides a window on websoc
 
 Renders a table with a specific number of rows that acts as a movable data window on a set of data of unspecified size.
 
-Updates the text content of the table cells if they change are within the visible range.
+Updates only the text content of those table cells, if the data has changed.
+
+Allows movement of the data window using a separate control: the table remains the same, the text content changes.
 
 ## Conscously Not Included
 
