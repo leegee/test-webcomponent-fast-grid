@@ -166,7 +166,7 @@ class TableComponent extends HTMLElement {
             (a, b) => ('' + a[this.#sortFieldName]).localeCompare(b[this.#sortFieldName])
         );
 
-        this.#updatePagerMax();
+        this.#update();
     }
 
     #renderVisibleRows() {
@@ -191,7 +191,7 @@ class TableComponent extends HTMLElement {
         }
     }
 
-    #updatePagerMax() {
+    #update() {
         this.pager.max = Math.max(0, this.#sortedRows.length > this.#numberOfRowsVisible ? this.#sortedRows.length - this.#numberOfRowsVisible : 0);
         this.#renderVisibleRows();
     }
