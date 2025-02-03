@@ -70,7 +70,8 @@ over which to monitor the change (ie up 10% over one minute/hour/day).
 
 ## Benchmark
 
-Supply a `benchmark='true'` attribute.
+Supply a `benchmark='true'` attribute to see benchmarks in the console. These impact performance a little, but cannot
+be run in a worker thread because workers do not have acess to the `performance.memory` API.
 
 Sending between 1-50 messages every 10 ms for a dataset of 100 items, on my old 64GB i7 running Windoze 10, whilst the app isn't touched and I'm watching a video on PooTube:
 
