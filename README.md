@@ -48,6 +48,7 @@ over which to monitor the change (ie up 10% over one minute/hour/day).
 
 * Since function calls are slow, a C-style for loop is the faster.
 * Maps are fastest for look-ups.
+* DOM manipulation is slow, so is minimized to rendering the table once and updating its contents
 
 ## Test
 
