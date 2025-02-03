@@ -31,8 +31,8 @@
 
 <body>
 
-  <foo-table websocket-url="ws://localhost:8023" rows="10" guid-field="id" benchmark="true">
-    <foo-column name="ID" key="id" type="string"></foo-column>
+  <foo-table websocket-url="ws://localhost:8023" rows="10" benchmark="true">
+    <foo-column name="ID" key="id" type="string" is-guid="true"></foo-column>
     <foo-column name="Name" key="name" type="string"></foo-column>
     <foo-column name="Age" key="age" type="number"></foo-column>
     <foo-column name="Location" key="location" type="string"></foo-column>

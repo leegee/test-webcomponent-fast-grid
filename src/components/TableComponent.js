@@ -88,8 +88,6 @@ class TableComponent extends HTMLElement {
         }
 
         this.#initialiseTable();
-        this.#idFieldName = this.getAttribute('guid-field') || this.#idFieldName;
-        this.#sortFieldName = this.#idFieldName;
         this.#setSortFunction();
 
         this.#thead.addEventListener('click', this.#columnHeaderClickHander.bind(this));
@@ -139,6 +137,12 @@ class TableComponent extends HTMLElement {
             key: colElem.getAttribute('key'),
             type: colElem.getAttribute('type'),
         }));
+
+        this.#idFieldName = columnElements
+            .filter(el => el.hasAttribute('is-guid'))
+            .map(el => el.getAttribute('id'))[0] || this.#idFieldName;
+
+        this.#sortFieldName = this.#idFieldName;
 
         // Create colgruop
         const colgroup = document.createElement('colgroup');
@@ -233,7 +237,7 @@ class TableComponent extends HTMLElement {
     #setSortFunction() {
         const sortColumn = this.#columns.find(col => col.key === this.#sortFieldName);
         if (!sortColumn) {
-            console.error('Sort field does not exist in column scheme:', this.#sortFieldName);
+            console.error(`Sort field '${this.#sortFieldName}' does not exist in column scheme.`);
             return;
         }
 

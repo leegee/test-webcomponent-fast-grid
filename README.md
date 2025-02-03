@@ -1,5 +1,16 @@
 # Fast Data Table
 
+## Synopsis
+
+    <foo-table websocket-url="ws://localhost:8023" rows="10" guid-field="id" benchmark="true">
+        <foo-column name="ID"       key="id"       type="string" is-guid="true"></foo-column>
+        <foo-column name="Name"     key="name"     type="string"               ></foo-column>
+        <foo-column name="Age"      key="age"      type="number"               ></foo-column>
+        <foo-column name="Location" key="location" type="string"               ></foo-column>
+    </foo-table>
+
+## Description
+
 An experiment to create a vanilla Web Component that provides a window on websocket data that updates as quickly as possible, with legible code, but without the overhead of any of the wonderful frameworks that dominate the landscape.
 
 Renders a table with a specific number of rows that acts as a movable data window on a set of data of unspecified size.
@@ -27,8 +38,6 @@ over which to monitor the change (ie up 10% over one minute/hour/day).
 `websocket-url='{string}'` (required)
 
 `rows='{number}'` - number of rows to display, defaults to `20`.
-
-`guid-field='{string}'` - used to identify rows, defaults to `id`.
 
 `benchmark='true'` - log benchmarks to the console
 
