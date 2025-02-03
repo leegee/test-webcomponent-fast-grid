@@ -1,6 +1,6 @@
 # Fast Data Table
 
-An experiment to create a vanilla Web Component that provides a window on websocket data that updates as quickly as possible, with legible code.
+An experiment to create a vanilla Web Component that provides a window on websocket data that updates as quickly as possible, with legible code, but without the overhead of any of the wonderful frameworks that dominate the landscape.
 
 Renders a table with a specific number of rows that acts as a movable data window on a set of data of unspecified size.
 
