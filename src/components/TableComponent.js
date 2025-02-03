@@ -8,6 +8,7 @@ class TableComponent extends HTMLElement {
     #rowsByGuid = new Map();
     #rowElements = [];
     #sortedRows = [];
+    #sortFunction = () => void (0);
     #updateRequested = false;
     #benchmarkHelper = undefined;
     #cachedCells = [];
@@ -68,6 +69,7 @@ class TableComponent extends HTMLElement {
         this.#initialiseTable();
         this.#idFieldName = this.getAttribute('guid-field') || this.#idFieldName;
         this.#sortFieldName = this.#idFieldName;
+        this.#setSortFunction();
 
         this.ws.addEventListener('open', async () => {
             this.ws.send(JSON.stringify({ type: 'connection_ack', message: 'hello' }));
@@ -162,9 +164,11 @@ class TableComponent extends HTMLElement {
             this.#sortedRows.push(value);
         }
 
-        this.#sortedRows.sort(
-            (a, b) => ('' + a[this.#sortFieldName]).localeCompare(b[this.#sortFieldName])
-        );
+        // this.#sortedRows.sort(
+        //     (a, b) => ('' + a[this.#sortFieldName]).localeCompare(b[this.#sortFieldName])
+        // );
+
+        this.#sortedRows.sort(this.#sortFunction);
 
         this.#update();
     }
@@ -194,6 +198,27 @@ class TableComponent extends HTMLElement {
     #update() {
         this.pager.max = Math.max(0, this.#sortedRows.length > this.#numberOfRowsVisible ? this.#sortedRows.length - this.#numberOfRowsVisible : 0);
         this.#renderVisibleRows();
+    }
+
+    #setSortFunction() {
+        const sortColumn = this.#columns.find(col => col.key === this.#sortFieldName);
+        if (!sortColumn) {
+            console.error('Sort field does not exist in column scheme:', this.#sortFieldName);
+            return;
+        }
+        switch (sortColumn.type) {
+            case 'number':
+                this.#sortFunction = (a, b) => a[this.#sortFieldName] - b[this.#sortFieldName];
+                break;
+            case 'date':
+                this.#sortFunction = (a, b) => new Date(a[this.#sortFieldName]) - new Date(b[this.#sortFieldName]);
+                break;
+            case 'string':
+            case 'id':
+            default:
+                this.#sortFunction = (a, b) => ('' + a[this.#sortFieldName]).localeCompare('' + b[this.#sortFieldName]);
+                break;
+        }
     }
 }
 
