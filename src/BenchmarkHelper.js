@@ -32,7 +32,7 @@ export class BenchmarkHelper {
         requestAnimationFrame(() => {
             performance.mark('end-update');
             performance.measure('UI Update', 'start-update', 'end-update');
-            const entry = performance.getEntriesByName('UI Update').pop();
+            // const entry = performance.getEntriesByName('UI Update').pop();
             // console.log(`UI update took ${entry.duration.toFixed(2)} ms`);
         });
     }
