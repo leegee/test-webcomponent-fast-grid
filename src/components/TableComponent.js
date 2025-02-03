@@ -11,6 +11,7 @@ class TableComponent extends HTMLElement {
     #sortedRows = [];
     #updateRequested = false;
     #benchmarkHelper = undefined;
+    #cachedCells = []; // Cache for cells
 
     constructor() {
         super();
@@ -142,6 +143,15 @@ class TableComponent extends HTMLElement {
             this.tbody.appendChild(thisRowElement);
             this.#rowElements.push(thisRowElement);
         }
+
+        this.#cachedCells = [];
+        this.#rowElements.forEach((rowElement, rowIndex) => {
+            const rowCells = [];
+            this.#columns.forEach((col) => {
+                rowCells.push(rowElement.querySelector(`[data-key="${col.key}"]`));
+            });
+            this.#cachedCells.push(rowCells);
+        });
     }
 
     // Should allow a sort func as arg
@@ -161,7 +171,6 @@ class TableComponent extends HTMLElement {
         }
 
         // Sort rows
-        // this.#sortedRows = Array.from(this.#rowsById.values()).sort((a, b) => a.id - b.id);
         this.#sortedRows = [];
         for (let [, value] of this.#rowsByGuid) {
             this.#sortedRows.push(value);
@@ -176,19 +185,16 @@ class TableComponent extends HTMLElement {
 
     #renderVisibleRows() {
         const start = parseInt(this.pager.value, 10);
-
         const visibleRows = this.#sortedRows.slice(start, start + this.#numberOfRowsVisible);
 
         for (let rowIndex = 0; rowIndex < visibleRows.length; rowIndex++) {
             const rowData = visibleRows[rowIndex];
 
-            if (this.#rowElements[rowIndex]) {
+            if (this.#cachedCells[rowIndex]) {
                 for (let colIndex = 0; colIndex < this.#columns.length; colIndex++) {
-                    const col = this.#columns[colIndex];
-                    const cell = this.#rowElements[rowIndex].querySelector(`[data-key="${col.key}"]`);
-
-                    if (cell && cell.textContent !== rowData[col.key]) {
-                        cell.textContent = rowData[col.key] || '';
+                    if (this.#cachedCells[rowIndex][colIndex]
+                        && this.#cachedCells[rowIndex][colIndex].textContent !== rowData[this.#columns[colIndex].key]) {
+                        this.#cachedCells[rowIndex][colIndex].textContent = rowData[this.#columns[colIndex].key] || '';
                     }
                 }
             }
