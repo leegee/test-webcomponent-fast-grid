@@ -164,10 +164,6 @@ class TableComponent extends HTMLElement {
             this.#sortedRows.push(value);
         }
 
-        // this.#sortedRows.sort(
-        //     (a, b) => ('' + a[this.#sortFieldName]).localeCompare(b[this.#sortFieldName])
-        // );
-
         this.#sortedRows.sort(this.#sortFunction);
 
         this.#update();
@@ -214,7 +210,6 @@ class TableComponent extends HTMLElement {
                 this.#sortFunction = (a, b) => new Date(a[this.#sortFieldName]) - new Date(b[this.#sortFieldName]);
                 break;
             case 'string':
-            case 'id':
             default:
                 this.#sortFunction = (a, b) => ('' + a[this.#sortFieldName]).localeCompare('' + b[this.#sortFieldName]);
                 break;
