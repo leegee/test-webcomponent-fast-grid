@@ -206,7 +206,7 @@ class TableComponent extends HTMLElement {
             case 'number':
                 this.#sortFunction = (a, b) => a[this.#sortFieldName] - b[this.#sortFieldName];
                 break;
-            case 'date':
+            case 'date': // So slow, one should use Hungarian dates/ISO-8601/20251213
                 this.#sortFunction = (a, b) => new Date(a[this.#sortFieldName]) - new Date(b[this.#sortFieldName]);
                 break;
             case 'string':
