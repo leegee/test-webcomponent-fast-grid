@@ -10,7 +10,6 @@ Allows movement of the data window using a separate control: the table remains t
 
 ## Conscously Not Included
 
-- No protocol to specify column names and types
 - No callbacks to sort
 - No callbacks on changes
 

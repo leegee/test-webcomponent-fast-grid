@@ -1,4 +1,5 @@
 import './components/TableComponent.js';
+import './components/ColumnComponent.js';
 
 // document.addEventListener('DOMContentLoaded', () => {
     // const table = document.querySelector('foo-table');

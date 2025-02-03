@@ -37,7 +37,14 @@ describe('FooTable WebSocket Data Handling', () => {
             }
         };
 
-        component = await fixture(html`<foo-table websocket-url="ws://localhost:8023"></foo-table>`);
+        component = await fixture(html`
+            <foo-table websocket-url="ws://localhost:8023">
+                <foo-column name="ID" key="id" type="string"></foo-column>
+                <foo-column name="Name" key="name" type="string"></foo-column>
+                <foo-column name="Age" key="age" type="number"></foo-column>
+                <foo-column name="Location" key="location" type="string"></foo-column>
+            </foo-table>
+        `);
     });
 
     afterEach(() => {

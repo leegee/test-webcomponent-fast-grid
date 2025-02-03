@@ -66,6 +66,7 @@ class TableComponent extends HTMLElement {
             this.pager.max = this.#numberOfRowsVisible;
         }
 
+        this.#initialiseTable();
         this.#idFieldName = this.getAttribute('guid-field') || this.#idFieldName;
         this.#sortFieldName = this.#idFieldName;
 
@@ -77,10 +78,10 @@ class TableComponent extends HTMLElement {
         this.ws.addEventListener('message', (event) => {
             const newRows = JSON.parse(event.data);
 
-            if (!this.#ready && newRows.length > 0) {
-                this.#initialiseTable(newRows);
-                this.#ready = true;
-            }
+            // if (!this.#ready && newRows.length > 0) {
+            //     this.#initialiseTable(newRows);
+            //     this.#ready = true;
+            // }
 
             if (!this.#updateRequested) {
                 this.#updateRequested = true;
@@ -111,13 +112,13 @@ class TableComponent extends HTMLElement {
         }
     }
 
-    #initialiseTable(dataArray) {
-        // Set columns based on the first row of data
-        this.#columns = Object.keys(dataArray[0]).map(key => ({ name: key, key }));
-
-        if (!Object.keys(dataArray[0]).includes('id')) {
-            console.error('The message did not contain the required GUID field, `' + this.#idFieldName + '`')
-        }
+    #initialiseTable() {
+        const columnElements = Array.from(this.querySelectorAll('foo-column'));
+        this.#columns = columnElements.map((colElem) => ({
+            name: colElem.getAttribute('name'),
+            key: colElem.getAttribute('key'),
+            type: colElem.getAttribute('type'),
+        }));
 
         // Set the table headers
         const headerRow = document.createElement('tr');
@@ -154,20 +155,10 @@ class TableComponent extends HTMLElement {
         });
     }
 
-    // Should allow a sort func as arg
     processNewData(newRows) {
         // Process new rows
         for (let i = 0; i < newRows.length; i++) {
-            const newRow = newRows[i];
-            const existingRow = this.#rowsByGuid.get(newRow[this.#idFieldName]);
-
-            if (existingRow) {
-                // If the row exists, update it
-                this.#rowsByGuid.set(newRow[this.#idFieldName], newRow);
-            } else {
-                // If the row doesn't exist, add it
-                this.#rowsByGuid.set(newRow[this.#idFieldName], newRow);
-            }
+            this.#rowsByGuid.set(newRows[i][this.#idFieldName], newRows[i]);
         }
 
         // Sort rows
