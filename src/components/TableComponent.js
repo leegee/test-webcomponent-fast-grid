@@ -1,17 +1,17 @@
 class TableComponent extends HTMLElement {
     static SHADOW_ROOT_MODE = 'open';
 
-    #columns = [];
-    #idFieldName = 'id';
-    #sortFieldName = undefined;
-    #numberOfRowsVisible = 20;
-    #rowsByGuid = new Map();
-    #rowElements = [];
-    #sortedRows = [];
-    #sortFunction = () => void (0);
-    #updateRequested = false;
     #benchmarkHelper = undefined;
     #cachedCells = [];
+    #columns = [];
+    #idFieldName = 'id';
+    #numberOfRowsVisible = 20;
+    #rowElements = [];
+    #rowsByGuid = new Map();
+    #sortedRows = [];
+    #sortFieldName = undefined;
+    #sortFunction = () => void (0);
+    #updateRequested = false;
 
     constructor() {
         super();
@@ -203,16 +203,17 @@ class TableComponent extends HTMLElement {
             return;
         }
         switch (sortColumn.type) {
+            case 'string':
+                this.#sortFunction = (a, b) => ('' + a[this.#sortFieldName]).localeCompare('' + b[this.#sortFieldName]);
+                break;
             case 'number':
                 this.#sortFunction = (a, b) => a[this.#sortFieldName] - b[this.#sortFieldName];
                 break;
             case 'date': // So slow, one should use Hungarian dates/ISO-8601/20251213
                 this.#sortFunction = (a, b) => new Date(a[this.#sortFieldName]) - new Date(b[this.#sortFieldName]);
                 break;
-            case 'string':
             default:
-                this.#sortFunction = (a, b) => ('' + a[this.#sortFieldName]).localeCompare('' + b[this.#sortFieldName]);
-                break;
+                console.error('Unknown type, ' + sortColumn.type)
         }
     }
 }

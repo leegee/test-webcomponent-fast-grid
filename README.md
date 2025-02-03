@@ -8,11 +8,12 @@ Updates only the text content of those table cells, if the data has changed.
 
 Allows movement of the data window using a separate control: the table remains the same, the text content changes.
 
+The current sorting and merging of data looks somewhat naive, but benchmarks show it to be faster
+than using a binary search.
+
 ## To Do
 
 Callbacks on cell changes (eg to add colour to flag changes/trends)
-
-Efficient sort/merge: binary search for insertion may be faster than re-sorting the dataset.
 
 ## Options 
 
