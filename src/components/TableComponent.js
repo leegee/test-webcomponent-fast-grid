@@ -179,7 +179,8 @@ class TableComponent extends HTMLElement {
             if (this.#cachedCells[rowIndex]) {
                 for (let colIndex = 0; colIndex < this.#columns.length; colIndex++) {
                     if (this.#cachedCells[rowIndex][colIndex]
-                        && this.#cachedCells[rowIndex][colIndex].textContent !== rowData[this.#columns[colIndex].key]) {
+                        && this.#cachedCells[rowIndex][colIndex].textContent !== rowData[this.#columns[colIndex].key]
+                    ) {
                         this.#cachedCells[rowIndex][colIndex].textContent = rowData[this.#columns[colIndex].key] || '';
                     }
                 }
