@@ -38,8 +38,8 @@ class TableComponent extends HTMLElement {
                 width: var(--foo-pager-width, '2pt');
             }
             #pager::-webkit-slider-thumb {
-                margin-left: -0.5em;
-                width: 1em;
+                // margin-left: -0.5em;
+                // width: 1em;
             }
           </style>
 
