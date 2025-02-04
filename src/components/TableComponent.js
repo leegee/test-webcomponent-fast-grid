@@ -1,4 +1,4 @@
-class TableComponent extends HTMLElement {
+export class TableComponent extends HTMLElement {
     static SHADOW_ROOT_MODE = 'open';
 
     #benchmarkHelper = undefined;
@@ -180,13 +180,15 @@ class TableComponent extends HTMLElement {
         }
 
         this.#cachedCells = [];
-        this.#rowElements.forEach((rowElement, rowIndex) => {
+        for (let rowIndex = 0; rowIndex < this.#rowElements.length; rowIndex++) {
+            const rowElement = this.#rowElements[rowIndex];
             const rowCells = [];
-            this.#columns.forEach((col) => {
+            for (let colIndex = 0; colIndex < this.#columns.length; colIndex++) {
+                const col = this.#columns[colIndex];
                 rowCells.push(rowElement.querySelector(`[data-key="${col.key}"]`));
-            });
+            }
             this.#cachedCells.push(rowCells);
-        });
+        }
     }
 
     #processNewData(newRows) {
@@ -237,7 +239,7 @@ class TableComponent extends HTMLElement {
     #setSortFunction() {
         const sortColumn = this.#columns.find(col => col.key === this.#sortFieldName);
         if (!sortColumn) {
-            console.error(`Sort field '${this.#sortFieldName}' does not exist in column scheme.`);
+            console.error(`Sort field '${this.#sortFieldName}' does not exist in column scheme:`, Object.keys(this.#columns).join(', '));
             return;
         }
 
