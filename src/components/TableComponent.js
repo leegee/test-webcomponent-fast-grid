@@ -197,12 +197,13 @@ export class TableComponent extends HTMLElement {
             this.#rowsByGuid.set(newRows[i][this.#idFieldName], newRows[i]);
         }
 
-        // Sort rows
+        // Prepare for sort: faster than Array.from
         this.#sortedRows = [];
         for (let [, value] of this.#rowsByGuid) {
             this.#sortedRows.push(value);
         }
 
+        // Sort rows
         this.#sortedRows.sort(this.#sortFunction);
 
         this.#update();
