@@ -102,7 +102,7 @@ class TableComponent extends HTMLElement {
 
             if (!this.#updateRequested) {
                 this.#updateRequested = true;
-                this.processNewData(newRows);
+                this.#processNewData(newRows);
 
                 requestAnimationFrame(() => {
                     this.#renderVisibleRows();
@@ -189,7 +189,7 @@ class TableComponent extends HTMLElement {
         });
     }
 
-    processNewData(newRows) {
+    #processNewData(newRows) {
         // Process new rows
         for (let i = 0; i < newRows.length; i++) {
             this.#rowsByGuid.set(newRows[i][this.#idFieldName], newRows[i]);
