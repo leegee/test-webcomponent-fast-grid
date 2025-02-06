@@ -4,6 +4,8 @@ export class TableComponent extends HTMLElement {
     #benchmarkHelper = undefined;
     #cachedCells = [];
     #columns = [];
+    #computedCells = [];
+    #computedCellsColumnCallbacks = [];
     #idFieldName = 'id';
     #numberOfRowsVisible = 20;
     #rowElements = [];
@@ -165,9 +167,11 @@ export class TableComponent extends HTMLElement {
 
         // Set a data row template
         const rowElement = document.createElement('tr');
+        rowElement.setAttribute('part', 'row');
         for (let i = 0; i < this.#columns.length; i++) {
             const td = document.createElement('td');
             td.dataset.key = this.#columns[i].key;
+            td.part = 'cell';
             rowElement.appendChild(td);
         }
 
@@ -177,6 +181,8 @@ export class TableComponent extends HTMLElement {
             thisRowElement.dataset.idx = i;
             this.#tbody.appendChild(thisRowElement);
             this.#rowElements.push(thisRowElement);
+            // Potentially used by callbacks
+            this.#computedCells[i] = [];
         }
 
         this.#cachedCells = [];
@@ -218,7 +224,19 @@ export class TableComponent extends HTMLElement {
 
             if (this.#cachedCells[rowIndex]) {
                 for (let colIndex = 0; colIndex < this.#columns.length; colIndex++) {
-                    if (this.#cachedCells[rowIndex][colIndex]
+                    if (this.#computedCellsColumnCallbacks[colIndex]) {
+                        this.#computedCells[rowIndex][colIndex] = this.#computedCellsColumnCallbacks[colIndex](
+                            rowData[this.#columns[colIndex].key],
+                            rowData,
+                            this.#cachedCells[rowIndex][colIndex]
+                        );
+                        // Only render changed values
+                        if (this.#computedCells[rowIndex][colIndex] !== rowData[this.#columns[colIndex].key]) {
+                            this.#cachedCells[rowIndex][colIndex].textContent = this.#computedCells[rowIndex][colIndex];
+                        }
+                    }
+                    else if (this.#cachedCells[rowIndex][colIndex]
+                        // Only render changed values
                         && this.#cachedCells[rowIndex][colIndex].textContent !== rowData[this.#columns[colIndex].key]
                     ) {
                         this.#cachedCells[rowIndex][colIndex].textContent = rowData[this.#columns[colIndex].key] || '';
@@ -284,6 +302,10 @@ export class TableComponent extends HTMLElement {
         }
         this.#setSortFunction();
         this.#update();
+    }
+
+    registerColumnCallback(index, fn) {
+        this.#computedCellsColumnCallbacks[index] = fn;
     }
 }
 

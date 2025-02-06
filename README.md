@@ -41,6 +41,10 @@ over which to monitor the change (ie up 10% over one minute/hour/day).
 
 `benchmark='true'` - log benchmarks to the console
 
+### Public Methods
+
+`registerColumnCallback(columnIndex, callback(newCellValue, completeDataRow, cellElement)`
+
 ### Public Fields
 
 `SHADOW_ROOT_MODE` - open or closed, defaults to `open` for testing.
