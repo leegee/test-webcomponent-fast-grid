@@ -1,5 +1,5 @@
 export class TableComponent extends HTMLElement {
-    static SHADOW_ROOT_MODE = 'open';
+    static SHADOW_ROOT_MODE = 'closed';
 
     #benchmarkHelper = undefined;
     #cachedCells = [];

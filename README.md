@@ -47,7 +47,7 @@ over which to monitor the change (ie up 10% over one minute/hour/day).
 
 ### Public Fields
 
-`SHADOW_ROOT_MODE` - open or closed, defaults to `open` for testing.
+Static `SHADOW_ROOT_MODE` - open or closed, defaults to `false` but can bet set to `open` for testing.
 
 ### CSS Variables
 

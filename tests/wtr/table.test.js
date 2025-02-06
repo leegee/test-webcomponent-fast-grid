@@ -2,6 +2,7 @@ import { expect } from '@esm-bundle/chai';
 import { fixture, html, waitUntil } from '@open-wc/testing';
 
 import '../../src/components/TableComponent';
+import { TableComponent } from '../../src/components/TableComponent';
 
 function getPopulatedRows(root) {
     // console.log(root.innerHTML);
@@ -14,6 +15,10 @@ describe('FooTable WebSocket Data Handling', () => {
     let component;
     let mockWebSocket;
     let originalWebSocket;
+
+    before(() => {
+        TableComponent.SHADOW_ROOT_MODE = 'open';
+    });
 
     beforeEach(async () => {
         // Mock WebSocket
