@@ -36,12 +36,12 @@ export class TableComponent extends HTMLElement {
         // NB tabIndex is required to make the element focusable for keyboard interaction
         this.#shadowRoot.innerHTML = `
           <section tabIndex=0>
-            <table id="table" role="table">
+            <table id="table" role="table" aria-live="polite">
               <thead id="thead" role="rowgroup"></thead>
               <tbody id="tbody" role="rowgroup"></tbody>
             </table>
             <input id="pager" type="range" min="0" max="${this.#numberOfRowsVisible}" value="0" />
-            <aside id="log" part="log"/>
+            <aside id="log" part="log" aria-live="assertive"/>
           </section>
         `;
 
