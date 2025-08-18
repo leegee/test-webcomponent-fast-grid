@@ -6,9 +6,10 @@ import { TableComponent } from '../../src/components/TableComponent';
 
 function getPopulatedRows(root) {
     // console.log(root.innerHTML);
-    return [...root.querySelectorAll('tbody tr')].filter(tr =>
-        [...tr.querySelectorAll('td')].some(td => td.textContent.trim() !== '')
-    );
+    return [...root.querySelectorAll('tbody tr')]
+        .filter(tr => [...tr.querySelectorAll('td')]
+            .some(td => td.textContent.trim() !== '')
+        );
 }
 
 describe('FooTable WebSocket Data Handling', () => {
