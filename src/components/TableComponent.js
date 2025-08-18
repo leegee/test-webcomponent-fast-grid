@@ -108,6 +108,11 @@ export class TableComponent extends HTMLElement {
         this.setAttribute('max-reconnect-delay', val);
     }
 
+    // For columnCallback
+    get idFieldName() {
+        return this.#idFieldName;
+    }
+
     #connectWebSocket() {
         const url = this.getAttribute('websocket-url');
         if (!url) return;
