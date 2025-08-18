@@ -48,11 +48,11 @@ over which to monitor the change (ie up 10% over one minute/hour/day).
 
 ### Public Methods
 
-`registerColumnCallback(columnIndex, callback(newCellValue, completeDataRow, cellElement)`
+`registerColumnCallback(columnKey, callback(newCellValue, completeDataRow, cellElement)`
 
 ### Public Fields
 
-Static `SHADOW_ROOT_MODE` - open or closed, defaults to `false` but can bet set to `open` for testing.
+Static `SHADOW_ROOT_MODE` - `open` or `closed`, defaults to `closed` but can bet set to `open` for testing.
 
 ### CSS Variables
 

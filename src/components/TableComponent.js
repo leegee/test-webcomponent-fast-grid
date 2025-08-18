@@ -362,8 +362,12 @@ export class TableComponent extends HTMLElement {
         this.#update();
     }
 
-    registerColumnCallback(index, fn) {
-        this.#computedCellsColumnCallbacks[index] = fn;
+    registerColumnCallback(key, fn) {
+        const colIndex = this.#columns.findIndex(c => c.key === key);
+        if (colIndex === -1) {
+            throw new Error(`Column ${key} not found`);
+        }
+        this.#computedCellsColumnCallbacks[colIndex] = fn;
     }
 }
 

@@ -44,20 +44,18 @@
     import './src/components/ColumnComponent.js';
 
     let lastValue = 0;
+    const table = document.getElementsByTagName('foo-table')[0];
 
     // An example of styling the cell when the shadow DOM is inaccessible to CSS.
-    const table = document.getElementsByTagName('foo-table')[0];
-    table.registerColumnCallback(2, (newValue, row, cell) => {
+    table.registerColumnCallback('age', (newValue, row, cell) => {
       let rv;
       if (newValue > lastValue) {
         cell.style.background = 'green';
         rv = '▲ ' + newValue;
-      }
-      else if (newValue < lastValue) {
+      } else if (newValue < lastValue) {
         cell.style.background = 'red';
         rv = '▼ ' + newValue;
-      }
-      else {
+      } else {
         cell.style.background = 'unset';
         rv = String(newValue);
       }
