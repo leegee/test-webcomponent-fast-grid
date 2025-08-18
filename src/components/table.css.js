@@ -54,7 +54,6 @@ await tableStyles.replace(`
 
   #log {
     visibility: hidden;
-    white-space: pre-wrap; 
     position: absolute;  
     top: 50%;             
     left: 50%;            
@@ -67,5 +66,13 @@ await tableStyles.replace(`
     color: #ddd;
     padding: 1em;
     z-index: 10;
+  }
+
+  #log.info {
+    background-color: darkblue;
+  }
+
+  #log.error {
+      white-space: pre-wrap; 
   }
 `);

@@ -49,8 +49,9 @@ export class TableComponent extends HTMLElement {
         this.ws = new WebSocket(this.getAttribute('websocket-url'));
     }
 
-    #logError(...msg) {
-        console.error(msg);
+    #logMessage(level, ...msg) {
+        level === 'info' ? console.info(msg) : console.error(msg);
+        this.#logElement.setAttribute('class', level);
         const p = document.createElement('p');
         p.textContent = msg.length === 1 ? msg : JSON.stringify(msg, null, 2);
         this.#logElement.appendChild(p);
@@ -89,10 +90,10 @@ export class TableComponent extends HTMLElement {
             }
         });
 
-        this.ws.addEventListener('close', () => console.info('WebSocket connection closed'));
+        this.ws.addEventListener('close', () => this.#logMessage('info', 'WebSocket connection closed'));
 
         this.ws.addEventListener('error', (err) => {
-            this.#logError('WebSocket error', {
+            this.#logMessage('error', 'WebSocket error', {
                 type: err.type,
                 readyState: this.ws.readyState,
                 url: this.ws.url
@@ -241,7 +242,7 @@ export class TableComponent extends HTMLElement {
     #setSortFunction() {
         const sortColumn = this.#columns.find(col => col.key === this.#sortFieldName);
         if (!sortColumn) {
-            this.#logError(`Sort field '${this.#sortFieldName}' does not exist in column scheme:`, Object.keys(this.#columns).join(', '));
+            this.#logMessage('error', `Sort field '${this.#sortFieldName}' does not exist in column scheme:`, Object.keys(this.#columns).join(', '));
             return;
         }
 
@@ -264,7 +265,7 @@ export class TableComponent extends HTMLElement {
                 break;
 
             default:
-                this.#logError('Unknown type:', sortColumn.type);
+                this.#logMessage('error', 'Unknown column type:', sortColumn.type);
         }
     }
 
