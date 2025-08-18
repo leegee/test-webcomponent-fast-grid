@@ -1,6 +1,7 @@
+import { tableStyles } from "./table.css.js";
 export class TableComponent extends HTMLElement {
     static SHADOW_ROOT_MODE = 'closed';
-
+    #shadowRoot;
     #benchmarkHelper = undefined;
     #cachedCells = [];
     #columns = [];
@@ -21,63 +22,24 @@ export class TableComponent extends HTMLElement {
 
     constructor() {
         super();
-        this.attachShadow({ mode: TableComponent.SHADOW_ROOT_MODE });
-        this.shadowRoot.innerHTML = `
-          <style>
-            main {
-              display: flex;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-            }
-            th {
-              cursor: s-resize;
-            }
-            th:before {
-                content: "▼ ";
-                opacity: 50%;
-                font-size: 75%;
-            }
-            th.desc {
-              cursor: n-resize;
-            }
-            th.desc:before {
-                content: "▲ ";
-                opacity: 50%;
-                font-size: 75%;
-            }
-            th, td {
-              border: var(--foo-cell-border, '1px solid grey');
-              padding: var(--foo-cell-padding, '8pt');
-              text-align: var(--foo-cell-align, 'left');;
-            }
-            #pager {
-              writing-mode: vertical-lr;
-            }
-            #pager::-webkit-slider-runnable-track {
-                background: var(--foo-pager-background, 'grey');
-                width: var(--foo-pager-width, 2pt);
-            }
-            #pager::-webkit-slider-thumb {
-                margin-left: -0.5em;
-                width: 1em;
-            }
-          </style>
 
-          <main>
+        this.#shadowRoot = this.attachShadow({ mode: TableComponent.SHADOW_ROOT_MODE });
+
+        this.#shadowRoot.adoptedStyleSheets = [tableStyles];
+        this.#shadowRoot.innerHTML = `
+          <section>
             <table id="table">
               <thead id="thead"></thead>
               <tbody id="tbody"></tbody>
             </table>
             <input id="pager" type="range" min="0" max="${this.#numberOfRowsVisible}" value="0" />
-          </main>
+          </section>
         `;
 
-        this.#table = this.shadowRoot.getElementById('table');
-        this.#thead = this.shadowRoot.getElementById('thead');
-        this.#tbody = this.shadowRoot.getElementById('tbody');
-        this.pager = this.shadowRoot.getElementById('pager');
+        this.#table = this.#shadowRoot.getElementById('table');
+        this.#thead = this.#shadowRoot.getElementById('thead');
+        this.#tbody = this.#shadowRoot.getElementById('tbody');
+        this.pager = this.#shadowRoot.getElementById('pager');
 
         this.ws = new WebSocket(this.getAttribute('websocket-url'));
     }

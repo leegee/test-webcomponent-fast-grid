@@ -9,6 +9,9 @@
         <foo-column name="Location" key="location" type="string"               ></foo-column>
     </foo-table>
 
+    bun run test
+    bun dev
+
 ## Description
 
 An experiment to create a vanilla Web Component that provides a window on websocket data that updates as quickly as possible, with legible code, but without the overhead of any of the wonderful frameworks that dominate the landscape.
