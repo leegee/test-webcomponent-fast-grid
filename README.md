@@ -13,19 +13,17 @@
 
 An experiment to create a vanilla Web Component that provides a window on websocket data that updates as quickly as possible, with legible code, but without the overhead of any of the wonderful frameworks that dominate the landscape.
 
-Renders a table with a specific number of rows that acts as a movable data window on a set of data of unspecified size.
-
-Updates only the text content of those table cells, if the data has changed.
+Renders a table with a specific number of rows that acts as a movable data window on a set of data of unspecified size. Updates only the text content of those table cells if the data has changed.
 
 Allows movement of the data window using a separate control: the table remains the same, the text content changes.
 
 The current sorting and merging of data looks somewhat naive, but benchmarks show it to be faster
 than using a binary search.
 
-## Out of Scope / Future Work
-
 If the number of items in the subscription were predetermined, sorting would be unncessary and binary search 
 for insertion points would be faster. However, the component is so fast as it stands....
+
+## Out of Scope / Future Work
 
 Change indicators would be useful. Perhaps allowing a column to specifiy that it ought to record changes
 could cause a new column to be added to do just that; the specification would have to specify a time period
