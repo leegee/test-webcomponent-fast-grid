@@ -62,6 +62,14 @@ Static `SHADOW_ROOT_MODE` - open or closed, defaults to `false` but can bet set 
     --foo-pager-width
     --foo-cell-align
 
+### Parts
+
+    row
+    cell
+    log
+
+Every column is also marked as a `part` using the column `key` property.
+
 ## Code Notes
 
 * Since function calls are slow, a C-style for loop is the faster.
