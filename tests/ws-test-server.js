@@ -3,6 +3,13 @@
 import { WebSocketServer } from 'ws';
 import dotenv from 'dotenv';
 
+/*
+VITE_HTTP_HOST=http://localhost:3000
+VITE_HTTP_PORT=3000
+VITE_WEBSOCKET_URL=ws://localhost:8023
+VITE_WEBSOCKET_PORT=8023
+*/
+
 const SEND_INTERVAL_MS = 10;
 const MAX_ROWS = 50;
 const MAX_ID = 100;
