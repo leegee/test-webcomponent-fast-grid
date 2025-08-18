@@ -151,7 +151,6 @@ export class TableComponent extends HTMLElement {
 
         this.#sortFieldName = this.#idFieldName;
 
-        // Create colgruop
         const colgroup = document.createElement('colgroup');
 
         // Set the table headers
@@ -170,7 +169,7 @@ export class TableComponent extends HTMLElement {
         this.#table.appendChild(colgroup);
         this.#thead.appendChild(headerRow);
 
-        // Set a data row template
+        // Set a data row template 
         const rowElement = document.createElement('tr');
         rowElement.setAttribute('part', 'row');
         for (let i = 0; i < this.#columns.length; i++) {
@@ -180,7 +179,7 @@ export class TableComponent extends HTMLElement {
             rowElement.appendChild(td);
         }
 
-        // Add data rows
+        // Add data rows using the template
         for (let i = 0; i < this.#numberOfRowsVisible; i++) {
             const thisRowElement = rowElement.cloneNode(true);
             thisRowElement.dataset.idx = i;
@@ -190,6 +189,7 @@ export class TableComponent extends HTMLElement {
             this.#computedCells[i] = [];
         }
 
+        // A cache for fast access during rendering
         this.#cachedCells = [];
         for (let rowIndex = 0; rowIndex < this.#rowElements.length; rowIndex++) {
             const rowElement = this.#rowElements[rowIndex];
@@ -203,8 +203,9 @@ export class TableComponent extends HTMLElement {
     }
 
     #processNewData(newRows) {
-        // Process new rows
+        // Add new row data - this is the fastest form of loop
         for (let i = 0; i < newRows.length; i++) {
+            // I suspect a numeric index would be fast than this named access:
             this.#rowsByGuid.set(newRows[i][this.#idFieldName], newRows[i]);
         }
 
@@ -214,7 +215,6 @@ export class TableComponent extends HTMLElement {
             this.#sortedRows.push(value);
         }
 
-        // Sort rows
         this.#sortedRows.sort(this.#sortFunction);
 
         this.#update();
@@ -229,6 +229,7 @@ export class TableComponent extends HTMLElement {
 
             if (this.#cachedCells[rowIndex]) {
                 for (let colIndex = 0; colIndex < this.#columns.length; colIndex++) {
+                    // If the user specified a callback for this colum, use it:
                     if (this.#computedCellsColumnCallbacks[colIndex]) {
                         this.#computedCells[rowIndex][colIndex] = this.#computedCellsColumnCallbacks[colIndex](
                             rowData[this.#columns[colIndex].key],
@@ -240,8 +241,9 @@ export class TableComponent extends HTMLElement {
                             this.#cachedCells[rowIndex][colIndex].textContent = this.#computedCells[rowIndex][colIndex];
                         }
                     }
+
+                    // No callback specified, render the raw data if it is diffrent to the cached value
                     else if (this.#cachedCells[rowIndex][colIndex]
-                        // Only render changed values
                         && this.#cachedCells[rowIndex][colIndex].textContent !== rowData[this.#columns[colIndex].key]
                     ) {
                         this.#cachedCells[rowIndex][colIndex].textContent = rowData[this.#columns[colIndex].key] || '';
@@ -250,13 +252,16 @@ export class TableComponent extends HTMLElement {
             }
         }
 
+        // It is faster to test than to call an empty/void method 
         if (this.#benchmarkHelper) {
             this.#benchmarkHelper.recordMessage();
         }
     }
 
     #update() {
-        this.#pager.max = Math.max(0, this.#sortedRows.length > this.#numberOfRowsVisible ? this.#sortedRows.length - this.#numberOfRowsVisible : 0);
+        this.#pager.max = Math.max(0,
+            this.#sortedRows.length > this.#numberOfRowsVisible ? this.#sortedRows.length - this.#numberOfRowsVisible : 0
+        );
         this.#renderVisibleRows();
     }
 
