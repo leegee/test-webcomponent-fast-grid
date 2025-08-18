@@ -55,17 +55,17 @@
       let rv;
 
       if (newValue > lastValue) {
-        console.log(rowId, 'last', lastValue, 'new', newValue)
         cell.style.background = 'green';
         rv = '▲ ' + newValue;
-      } else if (newValue < lastValue) {
-        console.log(rowId, 'last', lastValue, 'new', newValue)
+      }
+      else if (newValue < lastValue) {
         cell.style.background = 'red';
         rv = '▼ ' + newValue;
-      } else {
-        rv = String(newValue);
+      }
+      else { // No change, do nothing unless reset_bg_after_ms has passed since the last change
         if (Date.now() - lastTimestampsById.get(rowId).timestamp > reset_bg_after_ms) {
           cell.style.background = 'unset';
+          rv = String(newValue);
         }
       }
 

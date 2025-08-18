@@ -350,6 +350,7 @@ export class TableComponent extends HTMLElement {
                         // Only render if a result was received and the value changed
                         if (updatedTextContent !== undefined && this.#computedCells[rowIndex][colIndex] !== rowData[this.#columns[colIndex].key]) {
                             this.#cachedCells[rowIndex][colIndex].textContent = updatedTextContent;
+                            console.log(updatedTextContent)
                         }
                     }
 
