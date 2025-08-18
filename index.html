@@ -43,25 +43,35 @@
     import './src/components/TableComponent.js';
     import './src/components/ColumnComponent.js';
 
-    let lastValue = 0;
-    const table = document.getElementsByTagName('foo-table')[0];
-
     // An example of styling the cell when the shadow DOM is inaccessible to CSS.
+    const table = document.getElementsByTagName('foo-table')[0];
+    const lastValues = new Map();
+
     table.registerColumnCallback('age', (newValue, row, cell) => {
+      const rowId = row[table.idFieldName];
+      const lastValue = lastValues.get(rowId) ?? 0;
       let rv;
+
+
       if (newValue > lastValue) {
+        console.log(rowId, 'last', lastValue, 'new', newValue)
         cell.style.background = 'green';
         rv = '▲ ' + newValue;
       } else if (newValue < lastValue) {
+        console.log(rowId, 'last', lastValue, 'new', newValue)
         cell.style.background = 'red';
         rv = '▼ ' + newValue;
       } else {
-        cell.style.background = 'unset';
+        // cell.style.background = 'unset';
         rv = String(newValue);
       }
-      lastValue = Number(newValue);
+
+      lastValues.set(rowId, newValue);
+
+      // cell.innerText = newValue or just return the value:
       return rv;
     });
+
   </script>
 </body>
 
