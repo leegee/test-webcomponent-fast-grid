@@ -217,11 +217,12 @@ export class TableComponent extends HTMLElement {
         const rowElement = document.createElement('tr');
         rowElement.setAttribute('part', 'row');
         rowElement.setAttribute('role', 'row');
-        for (let i = 0; i < this.#columns.length; i++) {
+        for (let colIndex = 0; colIndex < this.#columns.length; colIndex++) {
             const td = document.createElement('td');
-            td.dataset.key = this.#columns[i].key;
+            td.dataset.key = this.#columns[colIndex].key;
             td.setAttribute('part', 'cell');
             td.setAttribute('role', 'cell');
+            td.setAttribute('aria-colindex', colIndex + 1);
             rowElement.appendChild(td);
         }
 
