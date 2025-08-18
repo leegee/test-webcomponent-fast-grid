@@ -10,6 +10,8 @@
     </foo-table>
 
     bun run test
+
+    bun run test:server
     bun dev
 
 ## Description
