@@ -1,25 +1,27 @@
 import { tableStyles } from "./table.css.js";
 export class TableComponent extends HTMLElement {
     static SHADOW_ROOT_MODE = 'closed';
-    #shadowRoot;
-    #logElement;
-    #benchmarkHelper = undefined;
+    #benchmarkHelper;
     #cachedCells = [];
     #columns = [];
     #computedCells = [];
     #computedCellsColumnCallbacks = [];
     #idFieldName = 'id';
-    #numberOfRowsVisible = 20;
+    #logElement;
+    #numberOfRowsVisible = 40;
+    #pager;
     #rowElements = [];
     #rowsByGuid = new Map();
-    #sortMultiplier = 1;
+    #shadowRoot;
     #sortedRows = [];
-    #sortFieldName = undefined;
-    #sortFunction = () => void (0);
+    #sortFieldName;
+    #sortMultiplier = 1;
+    #table;
+    #tbody;
+    #thead;
     #updateRequested = false;
-    #table = undefined;
-    #tbody = undefined;
-    #thead = undefined;
+
+    #sortFunction = () => void (0);
 
     constructor() {
         super();
@@ -41,7 +43,7 @@ export class TableComponent extends HTMLElement {
         this.#table = this.#shadowRoot.getElementById('table');
         this.#thead = this.#shadowRoot.getElementById('thead');
         this.#tbody = this.#shadowRoot.getElementById('tbody');
-        this.pager = this.#shadowRoot.getElementById('pager');
+        this.#pager = this.#shadowRoot.getElementById('pager');
         this.#logElement = this.#shadowRoot.getElementById('log');
 
         this.ws = new WebSocket(this.getAttribute('websocket-url'));
@@ -60,7 +62,7 @@ export class TableComponent extends HTMLElement {
         const numberOfRowsVisible = this.getAttribute('rows');
         if (Number(numberOfRowsVisible) > 0) {
             this.#numberOfRowsVisible = Number(numberOfRowsVisible);
-            this.pager.max = this.#numberOfRowsVisible;
+            this.#pager.max = this.#numberOfRowsVisible;
         }
 
         this.#initialiseTable();
@@ -97,7 +99,7 @@ export class TableComponent extends HTMLElement {
             });
         });
 
-        this.pager.addEventListener('input', () => this.#renderVisibleRows());
+        this.#pager.addEventListener('input', () => this.#renderVisibleRows());
 
         if (this.getAttribute('benchmark') === 'true') {
             const { BenchmarkHelper } = await import('../BenchmarkHelper');
@@ -197,7 +199,7 @@ export class TableComponent extends HTMLElement {
     }
 
     #renderVisibleRows() {
-        const start = parseInt(this.pager.value, 10);
+        const start = parseInt(this.#pager.value, 10);
         const visibleRows = this.#sortedRows.slice(start, start + this.#numberOfRowsVisible);
 
         for (let rowIndex = 0; rowIndex < visibleRows.length; rowIndex++) {
@@ -232,7 +234,7 @@ export class TableComponent extends HTMLElement {
     }
 
     #update() {
-        this.pager.max = Math.max(0, this.#sortedRows.length > this.#numberOfRowsVisible ? this.#sortedRows.length - this.#numberOfRowsVisible : 0);
+        this.#pager.max = Math.max(0, this.#sortedRows.length > this.#numberOfRowsVisible ? this.#sortedRows.length - this.#numberOfRowsVisible : 0);
         this.#renderVisibleRows();
     }
 
