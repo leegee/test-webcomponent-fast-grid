@@ -279,14 +279,14 @@ export class TableComponent extends HTMLElement {
                 for (let colIndex = 0; colIndex < this.#columns.length; colIndex++) {
                     // If the user specified a callback for this colum, use it:
                     if (this.#computedCellsColumnCallbacks[colIndex]) {
-                        this.#computedCells[rowIndex][colIndex] = this.#computedCellsColumnCallbacks[colIndex](
+                        const updatedTextContent = this.#computedCellsColumnCallbacks[colIndex](
                             rowData[this.#columns[colIndex].key],
                             rowData,
                             this.#cachedCells[rowIndex][colIndex]
                         );
-                        // Only render changed values
-                        if (this.#computedCells[rowIndex][colIndex] !== rowData[this.#columns[colIndex].key]) {
-                            this.#cachedCells[rowIndex][colIndex].textContent = this.#computedCells[rowIndex][colIndex];
+                        // Only render if a result was received and the value changed
+                        if (updatedTextContent !== undefined && this.#computedCells[rowIndex][colIndex] !== rowData[this.#columns[colIndex].key]) {
+                            this.#cachedCells[rowIndex][colIndex].textContent = updatedTextContent;
                         }
                     }
 
