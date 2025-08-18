@@ -40,7 +40,7 @@ export class TableComponent extends HTMLElement {
               <thead id="thead" role="rowgroup"></thead>
               <tbody id="tbody" role="rowgroup"></tbody>
             </table>
-            <input id="pager" type="range" min="0" max="${this.#numberOfRowsVisible}" value="0" />
+            <input id="pager" type="range" min="0" max="${this.#numberOfRowsVisible}" value="0" aria-label="Table pager"/>
             <aside id="log" part="log" aria-live="assertive"/>
           </section>
         `;
