@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "web-test-runner",
-    "test:server": "node tests/ws-test-server.js"
+    "test:server": "node tests/ws-test-server.js",
+    "test:server:slow": "node tests/ws-test-server.js -- 1000"
   },
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4-fix.0",
