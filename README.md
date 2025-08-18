@@ -14,6 +14,8 @@
     bun run test:server
     bun dev
 
+See [`index.html`](./index.html) for a complete example.
+
 ## Description
 
 An experiment to create a vanilla Web Component that provides a window on websocket data that updates as quickly as possible, with legible code, but without the overhead of any of the wonderful frameworks that dominate the landscape.
