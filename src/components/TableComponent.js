@@ -2,6 +2,7 @@ import { tableStyles } from "./table.css.js";
 export class TableComponent extends HTMLElement {
     static SHADOW_ROOT_MODE = 'closed';
     #shadowRoot;
+    #logElement;
     #benchmarkHelper = undefined;
     #cachedCells = [];
     #columns = [];
@@ -33,6 +34,7 @@ export class TableComponent extends HTMLElement {
               <tbody id="tbody"></tbody>
             </table>
             <input id="pager" type="range" min="0" max="${this.#numberOfRowsVisible}" value="0" />
+            <aside id="log" part="log"/>
           </section>
         `;
 
@@ -40,8 +42,18 @@ export class TableComponent extends HTMLElement {
         this.#thead = this.#shadowRoot.getElementById('thead');
         this.#tbody = this.#shadowRoot.getElementById('tbody');
         this.pager = this.#shadowRoot.getElementById('pager');
+        this.#logElement = this.#shadowRoot.getElementById('log');
 
         this.ws = new WebSocket(this.getAttribute('websocket-url'));
+    }
+
+    #logError(...msg) {
+        console.error(msg);
+        const p = document.createElement('p');
+        p.textContent = msg.length === 1 ? msg : JSON.stringify(msg, null, 2);
+        this.#logElement.appendChild(p);
+        this.#logElement.scrollTop = this.#logElement.scrollHeight;
+        this.#logElement.style.visibility = 'visible';
     }
 
     async connectedCallback() {
@@ -75,8 +87,15 @@ export class TableComponent extends HTMLElement {
             }
         });
 
-        this.ws.addEventListener('error', (err) => console.error('WebSocket error', err));
         this.ws.addEventListener('close', () => console.info('WebSocket connection closed'));
+
+        this.ws.addEventListener('error', (err) => {
+            this.#logError('WebSocket error', {
+                type: err.type,
+                readyState: this.ws.readyState,
+                url: this.ws.url
+            });
+        });
 
         this.pager.addEventListener('input', () => this.#renderVisibleRows());
 
@@ -220,7 +239,7 @@ export class TableComponent extends HTMLElement {
     #setSortFunction() {
         const sortColumn = this.#columns.find(col => col.key === this.#sortFieldName);
         if (!sortColumn) {
-            console.error(`Sort field '${this.#sortFieldName}' does not exist in column scheme:`, Object.keys(this.#columns).join(', '));
+            this.#logError(`Sort field '${this.#sortFieldName}' does not exist in column scheme:`, Object.keys(this.#columns).join(', '));
             return;
         }
 
@@ -243,7 +262,7 @@ export class TableComponent extends HTMLElement {
                 break;
 
             default:
-                console.error('Unknown type:', sortColumn.type);
+                this.#logError('Unknown type:', sortColumn.type);
         }
     }
 
