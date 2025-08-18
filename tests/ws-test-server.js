@@ -10,13 +10,13 @@ VITE_WEBSOCKET_URL=ws://localhost:8023
 VITE_WEBSOCKET_PORT=8023
 */
 
-const SEND_INTERVAL_MS = 10;
+const SEND_INTERVAL_MS = Number(process.argv[2]) || 10;
 const MAX_ROWS = 50;
 const MAX_ID = 100;
 
 dotenv.config();
 
-console.log(`Starting test server at ${process.env.VITE_WEBSOCKET_PORT}`)
+console.log(`Starting test server at ${process.env.VITE_WEBSOCKET_PORT} to send every ${SEND_INTERVAL_MS} ms.`)
 
 const wss = new WebSocketServer({ port: process.env.VITE_WEBSOCKET_PORT });
 
