@@ -10,6 +10,7 @@ export class TableComponent extends HTMLElement {
     #logElement;
     #numberOfRowsVisible = 40;
     #pager;
+    #reconnectInterval = 3_000;
     #rowElements = [];
     #rowsByGuid = new Map();
     #shadowRoot;
@@ -20,6 +21,7 @@ export class TableComponent extends HTMLElement {
     #tbody;
     #thead;
     #updateRequested = false;
+    #ws;
 
     #sortFunction = () => void (0);
 
@@ -46,17 +48,57 @@ export class TableComponent extends HTMLElement {
         this.#pager = this.#shadowRoot.getElementById('pager');
         this.#logElement = this.#shadowRoot.getElementById('log');
 
-        this.ws = new WebSocket(this.getAttribute('websocket-url'));
+        // this.ws = new WebSocket(this.getAttribute('websocket-url'));
     }
 
-    #logMessage(level, ...msg) {
-        level === 'info' ? console.info(msg) : console.error(msg);
-        this.#logElement.setAttribute('class', level);
+    #connectWebSocket() {
+        const url = this.getAttribute('websocket-url');
+        if (!url) return;
+
+        this.#ws = new WebSocket(url);
+
+        this.#ws.addEventListener('open', () => {
+            console.info('WebSocket connected');
+            this.#ws.send(JSON.stringify({ type: 'connection_ack', message: 'hello' }));
+            this.#clearLog();
+        });
+
+        this.#ws.addEventListener('message', (event) => {
+            const newRows = JSON.parse(event.data);
+            if (!this.#updateRequested) {
+                this.#updateRequested = true;
+
+                this.#processNewData(newRows);
+
+                requestAnimationFrame(() => {
+                    this.#renderVisibleRows();
+                    this.#updateRequested = false;
+                });
+            }
+        });
+
+        this.#ws.addEventListener('close', (ev) => {
+            this.#logError(`WebSocket closed (code: ${ev.code}). Reconnecting...`);
+            setTimeout(() => this.#connectWebSocket(), 3000);
+        });
+
+        this.#ws.addEventListener('error', (err) => {
+            this.#logError('WebSocket error', { type: err.type, readyState: this.#ws.readyState, url });
+        });
+    }
+
+    #logError(...msg) {
+        console.error(msg);
         const p = document.createElement('p');
         p.textContent = msg.length === 1 ? msg : JSON.stringify(msg, null, 2);
         this.#logElement.appendChild(p);
         this.#logElement.scrollTop = this.#logElement.scrollHeight;
         this.#logElement.style.visibility = 'visible';
+    }
+
+    #clearLog() {
+        this.#logElement.innerHTML = '';
+        this.#logElement.style.visibility = 'hidden';
     }
 
     async connectedCallback() {
@@ -70,36 +112,6 @@ export class TableComponent extends HTMLElement {
         this.#setSortFunction();
 
         this.#thead.addEventListener('click', this.#columnHeaderClickHander.bind(this));
-
-        this.ws.addEventListener('open', async () => {
-            this.ws.send(JSON.stringify({ type: 'connection_ack', message: 'hello' }));
-            console.info('WebSocket connected');
-        });
-
-        this.ws.addEventListener('message', (event) => {
-            const newRows = JSON.parse(event.data);
-
-            if (!this.#updateRequested) {
-                this.#updateRequested = true;
-                this.#processNewData(newRows);
-
-                requestAnimationFrame(() => {
-                    this.#renderVisibleRows();
-                    this.#updateRequested = false;
-                });
-            }
-        });
-
-        this.ws.addEventListener('close', () => this.#logMessage('info', 'WebSocket connection closed'));
-
-        this.ws.addEventListener('error', (err) => {
-            this.#logMessage('error', 'WebSocket error', {
-                type: err.type,
-                readyState: this.ws.readyState,
-                url: this.ws.url
-            });
-        });
-
         this.#pager.addEventListener('input', () => this.#renderVisibleRows());
 
         if (this.getAttribute('benchmark') === 'true') {
@@ -107,6 +119,8 @@ export class TableComponent extends HTMLElement {
             this.#benchmarkHelper = new BenchmarkHelper();
             this.#benchmarkHelper.startBenchmark(this.ws);
         }
+
+        this.#connectWebSocket();
     }
 
     disconnectedCallback() {
@@ -242,7 +256,7 @@ export class TableComponent extends HTMLElement {
     #setSortFunction() {
         const sortColumn = this.#columns.find(col => col.key === this.#sortFieldName);
         if (!sortColumn) {
-            this.#logMessage('error', `Sort field '${this.#sortFieldName}' does not exist in column scheme:`, Object.keys(this.#columns).join(', '));
+            this.#logError(`Sort field '${this.#sortFieldName}' does not exist in column scheme:`, Object.keys(this.#columns).join(', '));
             return;
         }
 
@@ -265,7 +279,7 @@ export class TableComponent extends HTMLElement {
                 break;
 
             default:
-                this.#logMessage('error', 'Unknown column type:', sortColumn.type);
+                this.#logError('Unknown column type:', sortColumn.type);
         }
     }
 

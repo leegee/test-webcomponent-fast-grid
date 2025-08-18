@@ -66,13 +66,6 @@ await tableStyles.replace(`
     color: #ddd;
     padding: 1em;
     z-index: 10;
-  }
-
-  #log.info {
-    background-color: darkblue;
-  }
-
-  #log.error {
-      white-space: pre-wrap; 
+    white-space: pre-wrap; 
   }
 `);
