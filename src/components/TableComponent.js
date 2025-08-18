@@ -36,9 +36,9 @@ export class TableComponent extends HTMLElement {
         // NB tabIndex is required to make the element focusable for keyboard interaction
         this.#shadowRoot.innerHTML = `
           <section tabIndex=0>
-            <table id="table">
-              <thead id="thead"></thead>
-              <tbody id="tbody"></tbody>
+            <table id="table" role="table">
+              <thead id="thead" role="rowgroup"></thead>
+              <tbody id="tbody" role="rowgroup"></tbody>
             </table>
             <input id="pager" type="range" min="0" max="${this.#numberOfRowsVisible}" value="0" />
             <aside id="log" part="log"/>
@@ -206,6 +206,8 @@ export class TableComponent extends HTMLElement {
             th.dataset.id = this.#columns[i].key;
             th.dataset.sortMultiplier = '1';
             th.textContent = this.#columns[i].name;
+            th.setAttribute('role', 'columnheader');
+            th.setAttribute('scope', 'col');
             headerRow.appendChild(th);
         }
         this.#table.appendChild(colgroup);
@@ -214,10 +216,12 @@ export class TableComponent extends HTMLElement {
         // Set a data row template 
         const rowElement = document.createElement('tr');
         rowElement.setAttribute('part', 'row');
+        rowElement.setAttribute('role', 'row');
         for (let i = 0; i < this.#columns.length; i++) {
             const td = document.createElement('td');
             td.dataset.key = this.#columns[i].key;
-            td.part = 'cell';
+            td.setAttribute('part', 'cell');
+            td.setAttribute('role', 'cell');
             rowElement.appendChild(td);
         }
 
