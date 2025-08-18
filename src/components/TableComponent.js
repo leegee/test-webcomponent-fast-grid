@@ -121,6 +121,15 @@ export class TableComponent extends HTMLElement {
         this.#thead.addEventListener('click', this.#columnHeaderClickHander.bind(this));
         this.#pager.addEventListener('input', () => this.#renderVisibleRows());
 
+        this.#shadowRoot.querySelector('section').addEventListener('wheel', (event) => {
+            event.preventDefault();
+            const direction = Math.sign(event.deltaY);
+            this.#pager.value = Math.max(this.#pager.min, Math.min(this.#pager.max,
+                parseInt(this.#pager.value) + direction
+            ));
+            this.#renderVisibleRows();
+        });
+
         if (this.getAttribute('benchmark') === 'true') {
             const { BenchmarkHelper } = await import('../BenchmarkHelper');
             this.#benchmarkHelper = new BenchmarkHelper();
