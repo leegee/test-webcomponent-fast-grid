@@ -10,7 +10,9 @@ export class TableComponent extends HTMLElement {
     #logElement;
     #numberOfRowsVisible = 40;
     #pager;
-    #reconnectInterval = 3_000;
+    #reconnectAttempts = 0;
+    #minReconnectDelay = 1_000;
+    #maxReconnectDelay = 30_000;
     #rowElements = [];
     #rowsByGuid = new Map();
     #shadowRoot;
@@ -61,6 +63,7 @@ export class TableComponent extends HTMLElement {
             console.info('WebSocket connected');
             this.#ws.send(JSON.stringify({ type: 'connection_ack', message: 'hello' }));
             this.#clearLog();
+            this.#reconnectAttempts = 0;
         });
 
         this.#ws.addEventListener('message', (event) => {
@@ -78,8 +81,12 @@ export class TableComponent extends HTMLElement {
         });
 
         this.#ws.addEventListener('close', (ev) => {
-            this.#logError(`WebSocket closed (code: ${ev.code}). Reconnecting...`);
-            setTimeout(() => this.#connectWebSocket(), 3000);
+            const delay = Math.min(
+                this.#minReconnectDelay * 2 ** this.#reconnectAttempts,
+                this.#maxReconnectDelay
+            );
+            this.#logError(`WebSocket closed (code: ${ev.code}). Reconnecting in ${delay / 1000} seconds...`);
+            setTimeout(() => this.#connectWebSocket(), delay);
         });
 
         this.#ws.addEventListener('error', (err) => {
