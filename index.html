@@ -44,14 +44,15 @@
     import './src/components/ColumnComponent.js';
 
     // An example of styling the cell when the shadow DOM is inaccessible to CSS.
+    const reset_bg_after_ms = 10_000;
     const table = document.getElementsByTagName('foo-table')[0];
-    const lastValues = new Map();
+    const lastValuesById = new Map();
+    const lastTimestampsById = new Map();
 
     table.registerColumnCallback('age', (newValue, row, cell) => {
       const rowId = row[table.idFieldName];
-      const lastValue = lastValues.get(rowId) ?? 0;
+      const lastValue = lastValuesById.get(rowId) ?? 0;
       let rv;
-
 
       if (newValue > lastValue) {
         console.log(rowId, 'last', lastValue, 'new', newValue)
@@ -62,13 +63,18 @@
         cell.style.background = 'red';
         rv = '▼ ' + newValue;
       } else {
-        // cell.style.background = 'unset';
         rv = String(newValue);
+        if (Date.now() - lastTimestampsById.get(rowId).timestamp > reset_bg_after_ms) {
+          cell.style.background = 'unset';
+        }
       }
 
-      lastValues.set(rowId, newValue);
+      lastValuesById.set(rowId, newValue);
+      lastTimestampsById.set(rowId, Date.now());
 
-      // cell.innerText = newValue or just return the value:
+      // Either: 
+      // cell.innerText = newValue
+      // Or return the value to have the cell updated:
       return rv;
     });
 
