@@ -11,7 +11,13 @@
 
     bun run test
 
+    # test ws server
     bun run test:server
+
+    # Or test ws server - slow
+    test:server:slow
+
+    # dev wc server
     bun dev
 
 See [`index.html`](./index.html) for a complete example.
