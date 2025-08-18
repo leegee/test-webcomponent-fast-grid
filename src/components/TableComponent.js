@@ -83,7 +83,7 @@ export class TableComponent extends HTMLElement {
 
         this.#ws.addEventListener('close', (ev) => {
             const delay = Math.min(
-                this.#minReconnectDelay * 2 ** this.#reconnectAttempts,
+                this.#minReconnectDelay * 2 ** this.#reconnectAttempts++,
                 this.#maxReconnectDelay
             );
             this.#logError(`WebSocket closed (code: ${ev.code}). Reconnecting in ${delay / 1000} seconds...`);
