@@ -33,8 +33,9 @@ export class TableComponent extends HTMLElement {
         this.#shadowRoot = this.attachShadow({ mode: TableComponent.SHADOW_ROOT_MODE });
 
         this.#shadowRoot.adoptedStyleSheets = [tableStyles];
+        // NB tabIndex is required to make the element focusable for keyboard interaction
         this.#shadowRoot.innerHTML = `
-          <section>
+          <section tabIndex=0>
             <table id="table">
               <thead id="thead"></thead>
               <tbody id="tbody"></tbody>
@@ -129,6 +130,38 @@ export class TableComponent extends HTMLElement {
             ));
             this.#renderVisibleRows();
         });
+
+        this.#shadowRoot.querySelector('section').addEventListener('keydown', (event) => {
+            let newValue = parseInt(this.#pager.value);
+            switch (event.key) {
+                case 'ArrowDown':
+                    newValue++;
+                    break;
+                case 'ArrowUp':
+                    newValue--;
+                    break;
+                case 'PageDown':
+                    newValue += this.#numberOfRowsVisible;
+                    break;
+                case 'PageUp':
+                    newValue -= this.#numberOfRowsVisible;
+                    break;
+                case 'Home':
+                    newValue = parseInt(this.#pager.min);
+                    break;
+                case 'End':
+                    newValue = parseInt(this.#pager.max);
+                    break;
+                default:
+                    return; // Bail early
+            }
+
+            event.preventDefault();
+            newValue = Math.max(this.#pager.min, Math.min(this.#pager.max, newValue));
+            this.#pager.value = newValue;
+            this.#renderVisibleRows();
+        });
+
 
         if (this.getAttribute('benchmark') === 'true') {
             const { BenchmarkHelper } = await import('../BenchmarkHelper');
