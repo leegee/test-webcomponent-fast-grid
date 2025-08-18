@@ -227,13 +227,14 @@ export class TableComponent extends HTMLElement {
         }
 
         // Add data rows using the template
-        for (let i = 0; i < this.#numberOfRowsVisible; i++) {
+        for (let rowIndex = 0; rowIndex < this.#numberOfRowsVisible; rowIndex++) {
             const thisRowElement = rowElement.cloneNode(true);
-            thisRowElement.dataset.idx = i;
+            thisRowElement.dataset.idx = rowIndex;
+            rowElement.setAttribute('aria-rowindex', rowIndex + 1);
             this.#tbody.appendChild(thisRowElement);
             this.#rowElements.push(thisRowElement);
             // Potentially used by callbacks
-            this.#computedCells[i] = [];
+            this.#computedCells[rowIndex] = [];
         }
 
         // A cache for fast access during rendering
