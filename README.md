@@ -42,6 +42,12 @@ over which to monitor the change (ie up 10% over one minute/hour/day).
 
 `websocket-url='{string}'` (required)
 
+`max-reconnect-attempts` in milliseconds
+
+`min-reconnect-delay` in milliseconds
+
+`max-reconnect-delay` in milliseconds
+
 `rows='{number}'` - number of rows to display, defaults to `20`.
 
 `benchmark='true'` - log benchmarks to the console
