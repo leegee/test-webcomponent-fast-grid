@@ -334,14 +334,6 @@ export class TableComponent extends HTMLElement {
             this.#rowsByGuid.set(newRows[i][this.idFieldName], newRows[i]);
         }
 
-        // Prepare for sort: faster than Array.from
-        this.#sortedRows = [];
-        for (let [, value] of this.#rowsByGuid) {
-            this.#sortedRows.push(value);
-        }
-
-        this.#sortedRows.sort(this.#sortFunction);
-
         this.#update();
     }
 
@@ -354,21 +346,24 @@ export class TableComponent extends HTMLElement {
 
             if (this.#cachedCells[rowIndex]) {
                 for (let colIndex = 0; colIndex < this.columns.length; colIndex++) {
+
                     // If the user specified a callback for this colum, use it:
                     if (this.#computedCellsColumnCallbacks[colIndex]) {
 
                         // If the value has changed:
-                        if (this.#computedCells[rowIndex][colIndex] !== rowData[this.columns[colIndex].key!]) {
-                            const updatedContent = this.#computedCellsColumnCallbacks[colIndex](
-                                rowData[this.columns[colIndex].key!],
-                                rowData,
-                                this.#cachedCells[rowIndex][colIndex]
-                            );
-                            if (updatedContent !== undefined) {
-                                this.#cachedCells[rowIndex][colIndex].innerHTML = updatedContent;
-                            }
-                            this.#computedCells[rowIndex][colIndex] = rowData[this.columns[colIndex].key!];
+                        const updatedContent = this.#computedCellsColumnCallbacks[colIndex](
+                            rowData[this.columns[colIndex].key!],
+                            rowData,
+                            this.#cachedCells[rowIndex][colIndex]
+                        );
+
+                        if (updatedContent !== undefined &&
+                            this.#computedCells[rowIndex][colIndex] !== updatedContent
+                        ) {
+                            this.#cachedCells[rowIndex][colIndex].innerHTML = updatedContent;
+                            this.#computedCells[rowIndex][colIndex] = updatedContent; //sort
                         }
+
                     }
 
                     // No callback specified, render the raw data if it is diffrent to the cached value
@@ -388,6 +383,14 @@ export class TableComponent extends HTMLElement {
     }
 
     #update() {
+        // Prepare for sort: faster than Array.from
+        this.#sortedRows = [];
+        for (let [, value] of this.#rowsByGuid) {
+            this.#sortedRows.push(value);
+        }
+
+        this.#sortedRows.sort(this.#sortFunction);
+
         this.#pager.max = String(
             Math.max(0,
                 this.#sortedRows.length > this.#numberOfRowsVisible ? this.#sortedRows.length - this.#numberOfRowsVisible : 0
@@ -456,16 +459,16 @@ export class TableComponent extends HTMLElement {
         this.#computedCellsColumnCallbacks[colIndex] = fn;
     }
 
-    _applyColumnWidth(index: number, width: number) {
-        const colgroup = this.shadowRoot.querySelector("colgroup");
-        if (!colgroup) return;
+    // _applyColumnWidth(index: number, width: number) {
+    //     const colgroup = this.shadowRoot.querySelector("colgroup");
+    //     if (!colgroup) return;
 
-        const col = colgroup.children[index] as HTMLElement;
-        if (col) {
-            console.log(`Applying width ${width}px to col ${index}`);
-            col.style.width = `${width}px`;
-        }
-    }
+    //     const col = colgroup.children[index] as HTMLElement;
+    //     if (col) {
+    //         console.log(`Applying width ${width}px to col ${index}`);
+    //         col.style.width = `${width}px`;
+    //     }
+    // }
 }
 
 customElements.define('foo-table', TableComponent);

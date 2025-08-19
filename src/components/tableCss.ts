@@ -14,6 +14,7 @@ tableCss.replaceSync(`
 
   th {
     cursor: s-resize;
+    padding: 1em;
   }
 
   th::before {
@@ -34,8 +35,8 @@ tableCss.replaceSync(`
 
   th,
   td {
-    border: 1px solid grey;
-    padding: 8pt;
+    padding: 0.3em;
+    border: 1px solid #555;
     text-align: left;
     overflow: hidden;
     white-space: nowrap;

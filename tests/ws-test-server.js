@@ -49,7 +49,7 @@ const testData = (
             {
                 id: 'id_' + id,
                 name: id + ' person',
-                age: Math.random(),
+                age: Math.random().toFixed(2),
                 location: 'Place ' + id
             },
         );

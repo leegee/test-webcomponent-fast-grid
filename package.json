@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "web-test-runner",
     "test:server": "node tests/ws-test-server.js",
-    "test:server:slow": "node tests/ws-test-server.js 50000"
+    "test:server:slow": "node tests/ws-test-server.js 5000"
   },
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4-fix.0",
