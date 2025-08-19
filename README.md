@@ -9,13 +9,18 @@
         <foo-column name="Location" key="location" type="string"               ></foo-column>
     </foo-table>
 
+## Test
+
+    bun install
     bun run test
+
+To test in a browser:
 
     # test ws server
     bun run test:server
 
     # Or test ws server - slow
-    test:server:slow
+    bun run test:server:slow
 
     # dev wc server
     bun dev
