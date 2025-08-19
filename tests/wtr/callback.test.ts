@@ -3,6 +3,7 @@ import { fixture, html, waitUntil } from '@open-wc/testing';
 
 import '../../src/components/TableComponent';
 import { TableComponent } from '../../src/components/TableComponent';
+import { MockWebSocket, mockWebSocket } from '../MockWebSocket';
 
 let reset_bg_after_ms = 200;
 
@@ -13,7 +14,6 @@ function getPopulatedRows(root) {
 
 describe('FooTable WebSocket Data Handling', () => {
     let component;
-    let mockWebSocket;
     let originalWebSocket;
 
     before(() => {
@@ -22,18 +22,7 @@ describe('FooTable WebSocket Data Handling', () => {
 
     beforeEach(async () => {
         originalWebSocket = globalThis.WebSocket;
-        globalThis.WebSocket = class WebSocket {
-            constructor() {
-                this.listeners = {};
-                mockWebSocket = this;
-                this.readyState = 1; // OPEN
-            }
-            addEventListener(event, callback) { this.listeners[event] = callback; }
-            close() { }
-            send(data) {
-                setTimeout(() => { if (this.listeners['message']) this.listeners['message']({ data }); }, 10);
-            }
-        };
+        globalThis.WebSocket = MockWebSocket as any;
 
         component = await fixture(html`
       <foo-table websocket-url="ws://localhost:8023">
@@ -46,7 +35,9 @@ describe('FooTable WebSocket Data Handling', () => {
 
         const lastValuesById = new Map();
         const resetTimeoutsById = new Map();
-        const table = document.getElementsByTagName('foo-table')[0];
+        const lastBgById = new Map<string, string>();
+        const table = document.getElementsByTagName('foo-table')[0] as TableComponent;
+        const resetBgAfterMs = 10_000;
 
         table.registerColumnCallback('age', (newValue: number, row: Record<string, any>) => {
             const rowId = row[table.idFieldName];

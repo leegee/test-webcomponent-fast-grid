@@ -3,6 +3,13 @@ import { fixture, html, waitUntil } from '@open-wc/testing';
 
 import '../../src/components/TableComponent';
 import { TableComponent } from '../../src/components/TableComponent';
+import { mockWebSocket, MockWebSocket } from '../MockWebSocket';
+
+type RowType = {
+    id: string;
+    name: string;
+    location: string;
+}
 
 function getPopulatedRows(root) {
     // console.log(root.innerHTML);
@@ -14,7 +21,6 @@ function getPopulatedRows(root) {
 
 describe('FooTable WebSocket Data Handling', () => {
     let component;
-    let mockWebSocket;
     let originalWebSocket;
 
     before(() => {
@@ -24,29 +30,7 @@ describe('FooTable WebSocket Data Handling', () => {
     beforeEach(async () => {
         // Mock WebSocket
         originalWebSocket = globalThis.WebSocket; // Save original WebSocket
-        globalThis.WebSocket = class WebSocket {
-            static readonly CONNECTING = 0;
-            static readonly OPEN = 1;
-            static readonly CLOSING = 2;
-            static readonly CLOSED = 3;
-            constructor() {
-                this.listeners = {};
-                mockWebSocket = this;
-                this.readyState = 1; // OPEN
-            }
-            addEventListener(event, callback) {
-                this.listeners[event] = callback;
-            }
-            close() { }
-            send(data) {
-                setTimeout(() => { // Simulate a delayed response
-                    if (this.listeners['message']) {
-                        this.listeners['message']({ data });
-                    }
-                }, 10);
-            }
-        } as any;
-
+        globalThis.WebSocket = MockWebSocket as any;
         component = await fixture(html`
             <foo-table websocket-url="ws://localhost:8023">
                 <foo-column name="ID" key="id" type="string"></foo-column>
@@ -172,10 +156,10 @@ describe('FooTable WebSocket Data Handling', () => {
 
         it('should add many rows', async () => {
             const rowsToAdd = 100;
-            let mockData = [];
+            let mockData: RowType[] = [];
             for (let id = 0; id < rowsToAdd; id++) {
                 mockData.push(
-                    { id: id.toString(), name: id + ' person', age: 21 + id, location: 'Place ' + id },
+                    { id: id.toString(), name: id + ' person', age: 21 + id, location: 'Place ' + id } as RowType,
                 );
             }
             mockWebSocket.send(JSON.stringify(mockData));
