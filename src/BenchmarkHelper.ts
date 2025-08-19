@@ -1,9 +1,7 @@
 export class BenchmarkHelper {
-    constructor() {
-        this.receivedMessages = 0;
-        this.startTime = null;
-        this.fpsSamples = [];
-    }
+    receivedMessages = 0;
+    startTime = 0;
+    fpsSamples: number[] = [];
 
     startBenchmark() {
         console.log('Benchmarking started...');

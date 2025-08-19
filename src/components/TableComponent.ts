@@ -1,6 +1,6 @@
 import { BenchmarkHelper } from "../BenchmarkHelper";
 import { allowedColumnTypes, ColumnAttributes, ColumnType } from "./ColumnComponent";
-import { tableStyles } from "./table.css.js";
+import { tableCss } from "./tableCss";
 // import { ResizableMixin } from "./ColumnReiszer.js";
 
 export type ColumnCallback = (value: any, rowData: Record<string, any>, cell: HTMLTableCellElement) => string | void;
@@ -44,7 +44,7 @@ export class TableComponent extends HTMLElement {
 
         this.shadowRoot = this.attachShadow({ mode: TableComponent.SHADOW_ROOT_MODE });
 
-        this.shadowRoot.adoptedStyleSheets = [tableStyles];
+        this.shadowRoot.adoptedStyleSheets = [tableCss];
         // NB tabIndex is required to make the element focusable for keyboard interaction
         this.shadowRoot.innerHTML = `
           <section tabIndex=0>
@@ -234,7 +234,8 @@ export class TableComponent extends HTMLElement {
         if (this.getAttribute('benchmark') === 'true') {
             const { BenchmarkHelper } = await import('../BenchmarkHelper');
             this.#benchmarkHelper = new BenchmarkHelper();
-            this.#benchmarkHelper.startBenchmark(this.#ws);
+            // this.#benchmarkHelper.startBenchmark(this.#ws);
+            this.#benchmarkHelper.startBenchmark();
         }
 
         // if (super.connectedCallback) super.connectedCallback();

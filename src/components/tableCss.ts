@@ -1,6 +1,6 @@
-export const tableStyles = new CSSStyleSheet();
+export const tableCss = new CSSStyleSheet();
 
-await tableStyles.replace(`
+tableCss.replaceSync(`
   section {
     display: flex;
     position: relative;
