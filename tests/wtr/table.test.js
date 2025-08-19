@@ -171,7 +171,7 @@ describe('FooTable WebSocket Data Handling', () => {
             let mockData = [];
             for (let id = 0; id < rowsToAdd; id++) {
                 mockData.push(
-                    { id: id.toString(), name: 'Person ' + id, age: 21 + id, location: 'Place ' + id },
+                    { id: id.toString(), name: id + ' person', age: 21 + id, location: 'Place ' + id },
                 );
             }
             mockWebSocket.send(JSON.stringify(mockData));
@@ -185,7 +185,7 @@ describe('FooTable WebSocket Data Handling', () => {
             const cells = rows[id].querySelectorAll('td');
             expect(cells.length).to.equal(4);
             expect(cells[0].textContent).to.equal(id.toString());
-            expect(cells[1].textContent).to.equal('Person ' + id);
+            expect(cells[1].textContent).to.equal(id + ' person');
             expect(cells[2].textContent).to.equal((21 + id).toString());
             expect(cells[3].textContent).to.equal('Place ' + id);
         });
