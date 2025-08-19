@@ -342,15 +342,15 @@ export class TableComponent extends HTMLElement {
                     // If the user specified a callback for this colum, use it:
                     if (this.#computedCellsColumnCallbacks[colIndex]) {
 
-                        // If value has changed:
+                        // If the value has changed:
                         if (this.#computedCells[rowIndex][colIndex] !== rowData[this.columns[colIndex].key]) {
-                            const updatedTextContent = this.#computedCellsColumnCallbacks[colIndex](
+                            const updatedContent = this.#computedCellsColumnCallbacks[colIndex](
                                 rowData[this.columns[colIndex].key],
                                 rowData,
                                 this.#cachedCells[rowIndex][colIndex]
                             );
-                            if (updatedTextContent !== undefined) {
-                                this.#cachedCells[rowIndex][colIndex].textContent = updatedTextContent;
+                            if (updatedContent !== undefined) {
+                                this.#cachedCells[rowIndex][colIndex].innerHTML = updatedContent;
                             }
                             this.#computedCells[rowIndex][colIndex] = rowData[this.columns[colIndex].key];
                         }
@@ -358,9 +358,9 @@ export class TableComponent extends HTMLElement {
 
                     // No callback specified, render the raw data if it is diffrent to the cached value
                     else if (this.#cachedCells[rowIndex][colIndex]
-                        && this.#cachedCells[rowIndex][colIndex].textContent !== rowData[this.columns[colIndex].key]
+                        && this.#cachedCells[rowIndex][colIndex].innerHTML !== rowData[this.columns[colIndex].key]
                     ) {
-                        this.#cachedCells[rowIndex][colIndex].textContent = rowData[this.columns[colIndex].key] || '';
+                        this.#cachedCells[rowIndex][colIndex].innerHTML = rowData[this.columns[colIndex].key] || '';
                     }
                 }
             }
