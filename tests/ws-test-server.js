@@ -36,23 +36,32 @@ wss.on('connection', (ws) => {
     sendTest(ws);
 });
 
+
+const sendData = () => {
+    // Should send a variable number of rows with a GUID in a wide range. Dupes are ok
+    const rowsToAdd = Math.floor(Math.random() * MAX_ROWS);
+    let testData = [];
+
+    for (let i = 1; i <= rowsToAdd; i++) {
+        const id = Math.floor(Math.random() * MAX_ID);
+        testData.push(
+            {
+                id: 'id_' + id,
+                name: id + ' person', //  + ' ' + Math.random(),
+                age: Math.random(),
+                location: 'Place ' + id
+            },
+        );
+    }
+
+    ws.send(JSON.stringify(testData));
+}
+
 function sendTest(ws) {
+    sendData();
+
     const interval = setInterval(() => {
-        // Should send a variable number of rows with a GUID in a wide range. Dupes are ok
-        const rowsToAdd = Math.floor(Math.random() * MAX_ROWS);
-        let testData = [];
-        for (let i = 1; i <= rowsToAdd; i++) {
-            const id = Math.floor(Math.random() * MAX_ID);
-            testData.push(
-                {
-                    id: 'id_' + id,
-                    name: id + ' person', //  + ' ' + Math.random(),
-                    age: Math.random(),
-                    location: 'Place ' + id
-                },
-            );
-        }
-        ws.send(JSON.stringify(testData));
+        sendData();
     }, SEND_INTERVAL_MS);
 
     ws.on('close', () => {
