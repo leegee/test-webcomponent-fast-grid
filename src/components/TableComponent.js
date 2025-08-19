@@ -226,7 +226,7 @@ export class TableComponent extends HTMLElement {
         if (this.getAttribute('benchmark') === 'true') {
             const { BenchmarkHelper } = await import('../BenchmarkHelper');
             this.#benchmarkHelper = new BenchmarkHelper();
-            this.#benchmarkHelper.startBenchmark(this.ws);
+            this.#benchmarkHelper.startBenchmark(this.#ws);
         }
 
         if (super.connectedCallback) super.connectedCallback();
@@ -235,8 +235,8 @@ export class TableComponent extends HTMLElement {
     }
 
     disconnectedCallback() {
-        if (this.ws) {
-            this.ws.close();
+        if (this.#ws) {
+            this.#ws.close();
         }
     }
 
@@ -261,7 +261,7 @@ export class TableComponent extends HTMLElement {
         const headerRow = document.createElement('tr');
         for (let i = 0; i < this.columns.length; i++) {
             const col = document.createElement('col');
-            col.part = this.columns[i].key;
+            col.setAttribute('part', this.columns[i].key);
             colgroup.appendChild(col);
 
             const th = document.createElement('th');

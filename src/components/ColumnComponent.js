@@ -1,4 +1,4 @@
-class ColumnComponent extends HTMLElement {
+export class ColumnComponent extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -13,7 +13,7 @@ class ColumnComponent extends HTMLElement {
 
         this.name = name;
         this.key = key;
-        this.key = type;
+        this.type = type;
     }
 }
 

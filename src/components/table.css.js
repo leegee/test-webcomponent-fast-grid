@@ -9,6 +9,7 @@ await tableStyles.replace(`
   table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
   }
 
   th {
@@ -36,6 +37,9 @@ await tableStyles.replace(`
     border: 1px solid grey;
     padding: 8pt;
     text-align: left;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   #pager {
