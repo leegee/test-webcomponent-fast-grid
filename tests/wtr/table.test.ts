@@ -25,6 +25,10 @@ describe('FooTable WebSocket Data Handling', () => {
         // Mock WebSocket
         originalWebSocket = globalThis.WebSocket; // Save original WebSocket
         globalThis.WebSocket = class WebSocket {
+            static readonly CONNECTING = 0;
+            static readonly OPEN = 1;
+            static readonly CLOSING = 2;
+            static readonly CLOSED = 3;
             constructor() {
                 this.listeners = {};
                 mockWebSocket = this;
@@ -41,7 +45,7 @@ describe('FooTable WebSocket Data Handling', () => {
                     }
                 }, 10);
             }
-        };
+        } as any;
 
         component = await fixture(html`
             <foo-table websocket-url="ws://localhost:8023">

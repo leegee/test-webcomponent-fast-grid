@@ -48,28 +48,38 @@ describe('FooTable WebSocket Data Handling', () => {
         const resetTimeoutsById = new Map();
         const table = document.getElementsByTagName('foo-table')[0];
 
-        table.registerColumnCallback('age', (newValue, row, cell) => {
+        table.registerColumnCallback('age', (newValue: number, row: Record<string, any>) => {
             const rowId = row[table.idFieldName];
             const lastValue = lastValuesById.get(rowId);
-            let bg = '';
+            let bg = lastBgById.get(rowId) ?? 'transparent';
 
             if (lastValue !== undefined && newValue !== lastValue) {
-                if (newValue > lastValue) bg = 'green';
-                else if (newValue < lastValue) bg = 'red';
+                if (newValue > lastValue) {
+                    bg = 'green';
+                }
+                else if (newValue < lastValue) {
+                    bg = 'red';
+                }
 
-                // Clear existing timeout if any
                 if (resetTimeoutsById.has(rowId)) clearTimeout(resetTimeoutsById.get(rowId));
 
-                // Apply new timeout to reset background
-                resetTimeoutsById.set(rowId, setTimeout(() => {
-                    if (cell.firstElementChild) cell.firstElementChild.style.backgroundColor = '';
-                    resetTimeoutsById.delete(rowId);
-                    console.log(`# Reset background for row ${rowId}`);
-                }, reset_bg_after_ms));
+                // Schedule background reset
+                resetTimeoutsById.set(
+                    rowId,
+                    window.setTimeout(() => {
+                        lastBgById.set(rowId, 'transparent');
+                        resetTimeoutsById.delete(rowId);
+                    }, resetBgAfterMs)
+                );
             }
 
             lastValuesById.set(rowId, newValue);
-            return bg ? `<div style="background-color:${bg}">${newValue}</div>` : String(newValue);
+            lastBgById.set(rowId, bg);
+
+            return `<div class="age-cell" style="
+            background-color:${bg};
+            padding: 4pt;
+            ">${newValue}</div>`;
         });
     });
 

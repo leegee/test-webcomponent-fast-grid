@@ -15,6 +15,8 @@
     "@esm-bundle/chai": "^4.3.4-fix.0",
     "@open-wc/testing": "^4.0.0",
     "@playwright/test": "^1.50.0",
+    "@types/mocha": "^10.0.10",
+    "@web/dev-server-esbuild": "^1.0.4",
     "@web/test-runner": "^0.19.0",
     "@web/test-runner-playwright": "^0.11.0",
     "chai": "^5.1.2",
