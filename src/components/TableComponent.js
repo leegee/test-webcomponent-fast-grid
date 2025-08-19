@@ -1,12 +1,15 @@
 import { tableStyles } from "./table.css.js";
+// import { ResizableMixin } from "./ColumnReiszer.js";
+
+// export class TableComponent extends ResizableMixin(HTMLElement) {
 export class TableComponent extends HTMLElement {
     static SHADOW_ROOT_MODE = 'closed';
     #benchmarkHelper;
     #cachedCells = [];
-    #columns = [];
+    columns = [];
     #computedCells = [];
     #computedCellsColumnCallbacks = [];
-    #idFieldName = 'id';
+    idFieldName = 'id';
     #logElement;
     #numberOfRowsVisible = 40;
     #pager;
@@ -16,7 +19,7 @@ export class TableComponent extends HTMLElement {
     #maxReconnectDelay = 30_000;
     #rowElements = [];
     #rowsByGuid = new Map();
-    #shadowRoot;
+    shadowRoot;
     #sortedRows = [];
     #sortFieldName;
     #sortMultiplier = 1;
@@ -35,11 +38,11 @@ export class TableComponent extends HTMLElement {
     constructor() {
         super();
 
-        this.#shadowRoot = this.attachShadow({ mode: TableComponent.SHADOW_ROOT_MODE });
+        this.shadowRoot = this.attachShadow({ mode: TableComponent.SHADOW_ROOT_MODE });
 
-        this.#shadowRoot.adoptedStyleSheets = [tableStyles];
+        this.shadowRoot.adoptedStyleSheets = [tableStyles];
         // NB tabIndex is required to make the element focusable for keyboard interaction
-        this.#shadowRoot.innerHTML = `
+        this.shadowRoot.innerHTML = `
           <section tabIndex=0>
             <table id="table" role="table" aria-live="polite">
               <thead id="thead" role="rowgroup"></thead>
@@ -50,11 +53,11 @@ export class TableComponent extends HTMLElement {
           </section>
         `;
 
-        this.#table = this.#shadowRoot.getElementById('table');
-        this.#thead = this.#shadowRoot.getElementById('thead');
-        this.#tbody = this.#shadowRoot.getElementById('tbody');
-        this.#pager = this.#shadowRoot.getElementById('pager');
-        this.#logElement = this.#shadowRoot.getElementById('log');
+        this.#table = this.shadowRoot.getElementById('table');
+        this.#thead = this.shadowRoot.getElementById('thead');
+        this.#tbody = this.shadowRoot.getElementById('tbody');
+        this.#pager = this.shadowRoot.getElementById('pager');
+        this.#logElement = this.shadowRoot.getElementById('log');
 
         const maxAttempts = Number(this.getAttribute('max-reconnect-attempts'));
         if (!isNaN(maxAttempts)) this.#maxReconnectAttempts = maxAttempts;
@@ -65,7 +68,6 @@ export class TableComponent extends HTMLElement {
         const maxDelay = Number(this.getAttribute('max-reconnect-delay'));
         if (!isNaN(maxDelay)) this.#maxReconnectDelay = maxDelay;
     }
-
 
     attributeChangedCallback(name, _oldValue, newValue) {
         const n = Number(newValue);
@@ -106,11 +108,6 @@ export class TableComponent extends HTMLElement {
     set maxReconnectDelay(val) {
         this.#maxReconnectDelay = val;
         this.setAttribute('max-reconnect-delay', val);
-    }
-
-    // For columnCallback
-    get idFieldName() {
-        return this.#idFieldName;
     }
 
     #connectWebSocket() {
@@ -185,7 +182,7 @@ export class TableComponent extends HTMLElement {
         this.#thead.addEventListener('click', this.#columnHeaderClickHander.bind(this));
         this.#pager.addEventListener('input', () => this.#renderVisibleRows());
 
-        this.#shadowRoot.querySelector('section').addEventListener('wheel', (event) => {
+        this.shadowRoot.querySelector('section').addEventListener('wheel', (event) => {
             event.preventDefault();
             const direction = Math.sign(event.deltaY);
             this.#pager.value = Math.max(this.#pager.min, Math.min(this.#pager.max,
@@ -194,7 +191,7 @@ export class TableComponent extends HTMLElement {
             this.#renderVisibleRows();
         });
 
-        this.#shadowRoot.querySelector('section').addEventListener('keydown', (event) => {
+        this.shadowRoot.querySelector('section').addEventListener('keydown', (event) => {
             let newValue = parseInt(this.#pager.value);
             switch (event.key) {
                 case 'ArrowDown':
@@ -232,6 +229,8 @@ export class TableComponent extends HTMLElement {
             this.#benchmarkHelper.startBenchmark(this.ws);
         }
 
+        if (super.connectedCallback) super.connectedCallback();
+
         this.#connectWebSocket();
     }
 
@@ -244,31 +243,31 @@ export class TableComponent extends HTMLElement {
     #initialiseTable() {
         // Set the column types based upon child elements: <foo-column name='ID' key='id' type='string'/>
         const columnElements = Array.from(this.querySelectorAll('foo-column'));
-        this.#columns = columnElements.map((colElem) => ({
+        this.columns = columnElements.map((colElem) => ({
             name: colElem.getAttribute('name'),
             key: colElem.getAttribute('key'),
             type: colElem.getAttribute('type'),
         }));
 
-        this.#idFieldName = columnElements
+        this.idFieldName = columnElements
             .filter(el => el.hasAttribute('is-guid'))
-            .map(el => el.getAttribute('id'))[0] || this.#idFieldName;
+            .map(el => el.getAttribute('id'))[0] || this.idFieldName;
 
-        this.#sortFieldName = this.#idFieldName;
+        this.#sortFieldName = this.idFieldName;
 
         const colgroup = document.createElement('colgroup');
 
         // Set the table headers
         const headerRow = document.createElement('tr');
-        for (let i = 0; i < this.#columns.length; i++) {
+        for (let i = 0; i < this.columns.length; i++) {
             const col = document.createElement('col');
-            col.part = this.#columns[i].key;
+            col.part = this.columns[i].key;
             colgroup.appendChild(col);
 
             const th = document.createElement('th');
-            th.dataset.id = this.#columns[i].key;
+            th.dataset.id = this.columns[i].key;
             th.dataset.sortMultiplier = '1';
-            th.textContent = this.#columns[i].name;
+            th.textContent = this.columns[i].name;
             th.setAttribute('role', 'columnheader');
             th.setAttribute('scope', 'col');
             headerRow.appendChild(th);
@@ -280,9 +279,9 @@ export class TableComponent extends HTMLElement {
         const rowElement = document.createElement('tr');
         rowElement.setAttribute('part', 'row');
         rowElement.setAttribute('role', 'row');
-        for (let colIndex = 0; colIndex < this.#columns.length; colIndex++) {
+        for (let colIndex = 0; colIndex < this.columns.length; colIndex++) {
             const td = document.createElement('td');
-            td.dataset.key = this.#columns[colIndex].key;
+            td.dataset.key = this.columns[colIndex].key;
             td.setAttribute('part', 'cell');
             td.setAttribute('role', 'cell');
             td.setAttribute('aria-colindex', colIndex + 1);
@@ -305,8 +304,8 @@ export class TableComponent extends HTMLElement {
         for (let rowIndex = 0; rowIndex < this.#rowElements.length; rowIndex++) {
             const rowElement = this.#rowElements[rowIndex];
             const rowCells = [];
-            for (let colIndex = 0; colIndex < this.#columns.length; colIndex++) {
-                const col = this.#columns[colIndex];
+            for (let colIndex = 0; colIndex < this.columns.length; colIndex++) {
+                const col = this.columns[colIndex];
                 rowCells.push(rowElement.querySelector(`[data-key="${col.key}"]`));
             }
             this.#cachedCells.push(rowCells);
@@ -316,8 +315,8 @@ export class TableComponent extends HTMLElement {
     #processNewData(newRows) {
         // Add new row data - this is the fastest form of loop
         for (let i = 0; i < newRows.length; i++) {
-            // I suspect a numeric index would be fast than this named access:
-            this.#rowsByGuid.set(newRows[i][this.#idFieldName], newRows[i]);
+            // I suspect a numeric index would be faster than this named access?
+            this.#rowsByGuid.set(newRows[i][this.idFieldName], newRows[i]);
         }
 
         // Prepare for sort: faster than Array.from
@@ -339,26 +338,29 @@ export class TableComponent extends HTMLElement {
             const rowData = visibleRows[rowIndex];
 
             if (this.#cachedCells[rowIndex]) {
-                for (let colIndex = 0; colIndex < this.#columns.length; colIndex++) {
+                for (let colIndex = 0; colIndex < this.columns.length; colIndex++) {
                     // If the user specified a callback for this colum, use it:
                     if (this.#computedCellsColumnCallbacks[colIndex]) {
-                        const updatedTextContent = this.#computedCellsColumnCallbacks[colIndex](
-                            rowData[this.#columns[colIndex].key],
-                            rowData,
-                            this.#cachedCells[rowIndex][colIndex]
-                        );
-                        // Only render if a result was received and the value changed
-                        if (updatedTextContent !== undefined && this.#computedCells[rowIndex][colIndex] !== rowData[this.#columns[colIndex].key]) {
-                            this.#cachedCells[rowIndex][colIndex].textContent = updatedTextContent;
-                            console.log(updatedTextContent)
+
+                        // If value has changed:
+                        if (this.#computedCells[rowIndex][colIndex] !== rowData[this.columns[colIndex].key]) {
+                            const updatedTextContent = this.#computedCellsColumnCallbacks[colIndex](
+                                rowData[this.columns[colIndex].key],
+                                rowData,
+                                this.#cachedCells[rowIndex][colIndex]
+                            );
+                            if (updatedTextContent !== undefined) {
+                                this.#cachedCells[rowIndex][colIndex].textContent = updatedTextContent;
+                            }
+                            this.#computedCells[rowIndex][colIndex] = rowData[this.columns[colIndex].key];
                         }
                     }
 
                     // No callback specified, render the raw data if it is diffrent to the cached value
                     else if (this.#cachedCells[rowIndex][colIndex]
-                        && this.#cachedCells[rowIndex][colIndex].textContent !== rowData[this.#columns[colIndex].key]
+                        && this.#cachedCells[rowIndex][colIndex].textContent !== rowData[this.columns[colIndex].key]
                     ) {
-                        this.#cachedCells[rowIndex][colIndex].textContent = rowData[this.#columns[colIndex].key] || '';
+                        this.#cachedCells[rowIndex][colIndex].textContent = rowData[this.columns[colIndex].key] || '';
                     }
                 }
             }
@@ -378,9 +380,9 @@ export class TableComponent extends HTMLElement {
     }
 
     #setSortFunction() {
-        const sortColumn = this.#columns.find(col => col.key === this.#sortFieldName);
+        const sortColumn = this.columns.find(col => col.key === this.#sortFieldName);
         if (!sortColumn) {
-            this.#logError(`Sort field '${this.#sortFieldName}' does not exist in column scheme:`, Object.keys(this.#columns).join(', '));
+            this.#logError(`Sort field '${this.#sortFieldName}' does not exist in column scheme:`, Object.keys(this.columns).join(', '));
             return;
         }
 
@@ -408,7 +410,9 @@ export class TableComponent extends HTMLElement {
     }
 
     #columnHeaderClickHander(e) {
-        if (this.#sortFieldName === e.target.dataset.id) {
+        if (!e.target.dataset.id) return; // Only process 'th' - ignore resize handle
+
+        if (e.target.dataset.id === this.#sortFieldName) {
             // If clicking on a header a second time, toggle direction
             if (e.target.dataset.sortMultiplier === '-1') {
                 e.target.classList.remove('desc');
@@ -427,11 +431,22 @@ export class TableComponent extends HTMLElement {
     }
 
     registerColumnCallback(key, fn) {
-        const colIndex = this.#columns.findIndex(c => c.key === key);
+        const colIndex = this.columns.findIndex(c => c.key === key);
         if (colIndex === -1) {
             throw new Error(`Column ${key} not found`);
         }
         this.#computedCellsColumnCallbacks[colIndex] = fn;
+    }
+
+    _applyColumnWidth(index, width) {
+        const colgroup = this.shadowRoot.querySelector("colgroup");
+        if (!colgroup) return;
+
+        const col = colgroup.children[index];
+        if (col) {
+            console.log(`Applying width ${width}px to col ${index}`);
+            col.style.width = `${width}px`;
+        }
     }
 }
 
