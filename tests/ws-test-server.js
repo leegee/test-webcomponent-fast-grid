@@ -46,7 +46,7 @@ function sendTest(ws) {
             testData.push(
                 {
                     id: 'id_' + id,
-                    name: 'Person ' + id, //  + ' ' + Math.random(),
+                    name: id + ' person', //  + ' ' + Math.random(),
                     age: Math.random(),
                     location: 'Place ' + id
                 },
