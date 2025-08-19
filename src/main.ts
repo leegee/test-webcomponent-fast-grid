@@ -4,7 +4,7 @@
 import './components/TableComponent';
 import './components/ColumnComponent';
 
-const resetBgAfterMs = 1_000;
+const resetBgAfterMs = 10_000;
 const lastValuesById = new Map<string, any>();
 const resetTimeoutsById = new Map<string, number>();
 

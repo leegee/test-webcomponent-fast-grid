@@ -62,6 +62,12 @@ function sendTest(ws) {
     // Send max rows straight away
     ws.send(JSON.stringify(testData(MAX_ROWS)));
 
+    // Update them
+    setTimeout(
+        () => ws.send(JSON.stringify(testData(MAX_ROWS))),
+        10
+    );
+
     // Update ae few every interval
     const interval = setInterval(
         () => ws.send(JSON.stringify(testData())),
