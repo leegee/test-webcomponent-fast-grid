@@ -190,4 +190,5 @@ describe('FooTable WebSocket Data Handling', () => {
             expect(cells[3].textContent).to.equal('Place ' + id);
         });
     });
+
 });
