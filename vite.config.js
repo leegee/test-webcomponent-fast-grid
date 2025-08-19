@@ -7,4 +7,12 @@ export default defineConfig({
     server: {
         port: process.env.VITE_HTTP_PORT,
     },
+
+    root: '.',
+    build: {
+        outDir: 'dist',
+        rollupOptions: {
+            input: 'index.html'
+        }
+    }
 });

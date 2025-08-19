@@ -13,7 +13,7 @@
     }
 
     foo-table {
-      --foo-cell-border: 1px solid #555;
+      --foo-cell-border: 1px solid #333;
       --foo-cell-padding: 8pt;
       --foo-pager-background: #777;
     }
@@ -31,7 +31,6 @@
 </head>
 
 <body>
-
   <foo-table websocket-url="ws://localhost:8023" rows="20" benchmark="true">
     <foo-column name="ID" key="id" type="string" is-guid="true"></foo-column>
     <foo-column name="Name" key="name" type="string"></foo-column>
@@ -39,40 +38,7 @@
     <foo-column name="Location" key="location" type="string"></foo-column>
   </foo-table>
 
-  <script type="module">
-    import './src/components/TableComponent.js';
-    import './src/components/ColumnComponent.js';
-
-    const reset_bg_after_ms = 1_000;
-    const lastValuesById = new Map();
-    const resetTimeoutsById = new Map();
-    const table = document.getElementsByTagName('foo-table')[0];
-
-    table.registerColumnCallback('age', (newValue, row, cell) => {
-      const rowId = row[table.idFieldName];
-      const lastValue = lastValuesById.get(rowId);
-      let bg = '';
-
-      if (lastValue !== undefined && newValue !== lastValue) {
-        if (newValue > lastValue) bg = 'green';
-        else if (newValue < lastValue) bg = 'red';
-
-        // Clear existing timeout if any
-        if (resetTimeoutsById.has(rowId)) clearTimeout(resetTimeoutsById.get(rowId));
-
-        // Apply new timeout to reset background
-        resetTimeoutsById.set(rowId, setTimeout(() => {
-          if (cell.firstElementChild) cell.firstElementChild.style.backgroundColor = '';
-          resetTimeoutsById.delete(rowId);
-          console.log(`# Reset background for row ${rowId}`);
-        }, reset_bg_after_ms));
-      }
-
-      lastValuesById.set(rowId, newValue);
-      return bg ? `<div style="background-color:${bg}">${newValue}</div>` : String(newValue);
-    });
-
-  </script>
+  <script type="module" src="/src/main.ts"></script>
 </body>
 
 </html>

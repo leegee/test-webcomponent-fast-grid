@@ -37,9 +37,10 @@ wss.on('connection', (ws) => {
 });
 
 
-const sendData = () => {
-    // Should send a variable number of rows with a GUID in a wide range. Dupes are ok
-    const rowsToAdd = Math.floor(Math.random() * MAX_ROWS);
+// Should send a variable number of rows with a GUID in a wide range. Dupes are ok
+const testData = (
+    rowsToAdd = Math.floor(Math.random() * MAX_ROWS)
+) => {
     let testData = [];
 
     for (let i = 1; i <= rowsToAdd; i++) {
@@ -47,22 +48,25 @@ const sendData = () => {
         testData.push(
             {
                 id: 'id_' + id,
-                name: id + ' person', //  + ' ' + Math.random(),
+                name: id + ' person',
                 age: Math.random(),
                 location: 'Place ' + id
             },
         );
     }
 
-    ws.send(JSON.stringify(testData));
+    return testData;
 }
 
 function sendTest(ws) {
-    sendData();
+    // Send max rows straight away
+    ws.send(JSON.stringify(testData(MAX_ROWS)));
 
-    const interval = setInterval(() => {
-        sendData();
-    }, SEND_INTERVAL_MS);
+    // Update ae few every interval
+    const interval = setInterval(
+        () => ws.send(JSON.stringify(testData())),
+        SEND_INTERVAL_MS
+    );
 
     ws.on('close', () => {
         console.log('Client disconnected');
