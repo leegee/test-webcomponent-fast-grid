@@ -5,7 +5,7 @@ import '../../src/components/TableComponent';
 import { TableComponent } from '../../src/components/TableComponent';
 import { MockWebSocket, mockWebSocket } from '../MockWebSocket';
 
-let reset_bg_after_ms = 200;
+const resetBgAfterMs = 200;
 
 function getPopulatedRows(root) {
     return [...root.querySelectorAll('tbody tr')]
@@ -33,11 +33,11 @@ describe('FooTable WebSocket Data Handling', () => {
       </foo-table>
     `);
 
-        const lastValuesById = new Map();
-        const resetTimeoutsById = new Map();
+        const table = document.getElementsByTagName('foo-table')[0] as any;
+
+        const lastValuesById = new Map<string, any>();
         const lastBgById = new Map<string, string>();
-        const table = document.getElementsByTagName('foo-table')[0] as TableComponent;
-        const resetBgAfterMs = 10_000;
+        const resetTimeoutsById = new Map<string, number>();
 
         table.registerColumnCallback('age', (newValue: number, row: Record<string, any>) => {
             const rowId = row[table.idFieldName];
@@ -67,11 +67,9 @@ describe('FooTable WebSocket Data Handling', () => {
             lastValuesById.set(rowId, newValue);
             lastBgById.set(rowId, bg);
 
-            return `<div class="age-cell" style="
-            background-color:${bg};
-            padding: 4pt;
-            ">${newValue}</div>`;
+            return `<div class="age-cell" style=" background-color:${bg}; padding: 4pt; ">${newValue}</div>`;
         });
+
     });
 
     afterEach(() => { globalThis.WebSocket = originalWebSocket; });
@@ -94,11 +92,14 @@ describe('FooTable WebSocket Data Handling', () => {
             });
             expect(ageDiv.style.backgroundColor).to.equal('green');
 
-            // Wait for timeout to reset background
-            await new Promise(r => setTimeout(r, reset_bg_after_ms + 50));
+            await new Promise(r => setTimeout(r, resetBgAfterMs + 150));
+            mockWebSocket.send(JSON.stringify([{ id: 2, name: 'Whateer', age: 1, location: 'Nowhere' }]));
 
-            ageDiv = ageCell.firstElementChild;
-            expect(ageDiv.style.backgroundColor).to.equal('');
+            await waitUntil(() => {
+                ageDiv = ageCell.firstElementChild;
+                return ageDiv && ageDiv.textContent.includes('31') && ageDiv.style.backgroundColor === 'transparent';
+            });
+            expect(ageDiv.style.backgroundColor).to.equal('transparent');
         });
     });
 });
