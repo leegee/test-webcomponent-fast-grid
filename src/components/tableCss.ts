@@ -35,13 +35,18 @@ tableCss.replaceSync(`
 
   th,
   td {
-    padding: 0.3em;
     border: 1px solid #555;
     text-align: left;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
+
+  th,
+  .td:not(:has(div)) {
+     padding: 0.3em;
+ }
+
 
   #pager {
     writing-mode: vertical-lr;
