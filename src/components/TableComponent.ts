@@ -5,14 +5,16 @@ import { tableCss } from "./tableCss";
 
 export type ColumnCallback = (value: any, rowData: Record<string, any>, cell: HTMLTableCellElement) => string | void;
 
+export type RowData = Record<string, string | number | Date | null | undefined>;
+
 // export class TableComponent extends ResizableMixin(HTMLElement) {
 export class TableComponent extends HTMLElement {
     static SHADOW_ROOT_MODE: ShadowRootMode = 'closed';
     #benchmarkHelper: BenchmarkHelper | undefined;
-    #cachedCells: any[][] = [];
+    #cachedCells: HTMLTableCellElement[][] = [];
     columns: ColumnAttributes[] = [];
-    #computedCells: any[][] = [];
-    #computedCellsColumnCallbacks: ColumnCallback[] = [];
+    #computedCells: (string | undefined)[][] = [];
+    #computedCellsColumnCallbacks: (ColumnCallback | undefined)[] = [];
     idFieldName = 'id';
     #logElement: HTMLElement;
     #numberOfRowsVisible = 40;
@@ -24,7 +26,7 @@ export class TableComponent extends HTMLElement {
     #rowElements: HTMLTableRowElement[] = [];
     #rowsByGuid = new Map();
     root;
-    #sortedRows: any[] = [];
+    #sortedRows: RowData[] = [];
     #sortFieldName: string | undefined;
     #sortMultiplier = 1;
     #table: HTMLTableElement;
@@ -128,7 +130,7 @@ export class TableComponent extends HTMLElement {
         });
 
         this.#ws.addEventListener('message', (event) => {
-            const newRows = JSON.parse(event.data);
+            const newRows = JSON.parse(event.data); // Revive dates
             if (!this.#updateRequested) {
                 this.#updateRequested = true;
 
@@ -348,10 +350,10 @@ export class TableComponent extends HTMLElement {
                 for (let colIndex = 0; colIndex < this.columns.length; colIndex++) {
 
                     // If the user specified a callback for this colum, use it:
-                    if (this.#computedCellsColumnCallbacks[colIndex]) {
+                    if (typeof this.#computedCellsColumnCallbacks[colIndex] === "function") {
 
                         // If the value has changed:
-                        const updatedContent = this.#computedCellsColumnCallbacks[colIndex](
+                        const updatedContent = this.#computedCellsColumnCallbacks[colIndex]!(
                             rowData[this.columns[colIndex].key!],
                             rowData,
                             this.#cachedCells[rowIndex][colIndex]
@@ -370,7 +372,7 @@ export class TableComponent extends HTMLElement {
                     else if (this.#cachedCells[rowIndex][colIndex]
                         && this.#cachedCells[rowIndex][colIndex].innerHTML !== rowData[this.columns[colIndex].key!]
                     ) {
-                        this.#cachedCells[rowIndex][colIndex].innerHTML = rowData[this.columns[colIndex].key!] || '';
+                        this.#cachedCells[rowIndex][colIndex].innerHTML = String(rowData[this.columns[colIndex].key!] || '');
                     }
                 }
             }
