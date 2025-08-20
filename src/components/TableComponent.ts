@@ -142,7 +142,7 @@ export class TableComponent extends HTMLElement {
         });
 
         this.#ws.addEventListener('close', (ev) => {
-            if (++this.#reconnectAttempts > this.#maxReconnectAttempts) {
+            if (++this.#reconnectAttempts <= this.#maxReconnectAttempts) {
                 const delay = Math.min(
                     this.#minReconnectDelay * 2 ** this.#reconnectAttempts,
                     this.#maxReconnectDelay
