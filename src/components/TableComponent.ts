@@ -266,7 +266,7 @@ export class TableComponent extends HTMLElement {
 
         this.idFieldName = columnElements
             .filter(el => el.hasAttribute('is-guid'))
-            .map(el => el.getAttribute('id'))[0] || this.idFieldName;
+            .map(el => el.getAttribute('key'))[0] || this.idFieldName;
 
         this.#sortFieldName = this.idFieldName;
 
