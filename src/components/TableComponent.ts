@@ -35,7 +35,7 @@ export class TableComponent extends HTMLElement {
     #updateRequested = false;
     #ws: WebSocket | undefined;
 
-    #sortFunction: (a: any, b: any) => number = () => 0;
+    #sortFunction: (a: RowData, b: RowData) => number = () => 0;
 
     static get observedAttributes() {
         return ['max-reconnect-attempts', 'min-reconnect-delay', 'max-reconnect-delay'];
@@ -404,30 +404,47 @@ export class TableComponent extends HTMLElement {
     #setSortFunction() {
         const sortColumn = this.columns.find(col => col.key === this.#sortFieldName);
         if (!sortColumn) {
-            this.#logError(`Sort field '${this.#sortFieldName}' does not exist in column scheme:`, Object.keys(this.columns).join(', '));
+            this.#logError(
+                `Sort field '${this.#sortFieldName}' does not exist in column scheme:`,
+                this.columns.map(c => c.key).join(', ')
+            );
             return;
         }
 
         const sortMultiplier = Number(this.#sortMultiplier);
 
+        const getCellValue = (row: RowData) => row[this.#sortFieldName!];
+
         switch (sortColumn.type) {
             case 'string':
-                this.#sortFunction = (a, b) =>
-                    sortMultiplier * ('' + a[this.#sortFieldName!]).localeCompare('' + b[this.#sortFieldName!]);
+                this.#sortFunction = (a, b) => {
+                    const aVal = getCellValue(a) ?? '';
+                    const bVal = getCellValue(b) ?? '';
+                    return sortMultiplier * String(aVal).localeCompare(String(bVal));
+                };
                 break;
 
             case 'number':
-                this.#sortFunction = (a, b) =>
-                    sortMultiplier * (Number(a[this.#sortFieldName!]) - Number(b[this.#sortFieldName!]));
+                this.#sortFunction = (a, b) => {
+                    const aVal = Number(getCellValue(a) ?? 0);
+                    const bVal = Number(getCellValue(b) ?? 0);
+                    return sortMultiplier * (aVal - bVal);
+                };
                 break;
 
             case 'date':
-                this.#sortFunction = (a, b) =>
-                    sortMultiplier * (new Date(a[this.#sortFieldName!]).getTime() - new Date(b[this.#sortFieldName!]).getTime());
+                this.#sortFunction = (a, b) => {
+                    const aVal = getCellValue(a);
+                    const bVal = getCellValue(b);
+                    const aTime = aVal != null ? new Date(aVal).getTime() : 0;
+                    const bTime = bVal != null ? new Date(bVal).getTime() : 0;
+                    return sortMultiplier * (aTime - bTime);
+                };
                 break;
 
             default:
                 this.#logError('Unknown column type:', sortColumn.type);
+                this.#sortFunction = () => 0;
         }
     }
 
