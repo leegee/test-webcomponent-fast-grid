@@ -23,7 +23,7 @@ export class TableComponent extends HTMLElement {
     #maxReconnectDelay = 30_000;
     #rowElements: HTMLTableRowElement[] = [];
     #rowsByGuid = new Map();
-    shadowRoot;
+    root;
     #sortedRows: any[] = [];
     #sortFieldName: string | undefined;
     #sortMultiplier = 1;
@@ -42,11 +42,11 @@ export class TableComponent extends HTMLElement {
     constructor() {
         super();
 
-        this.shadowRoot = this.attachShadow({ mode: TableComponent.SHADOW_ROOT_MODE });
+        this.root = this.attachShadow({ mode: TableComponent.SHADOW_ROOT_MODE });
 
-        this.shadowRoot.adoptedStyleSheets = [tableCss];
+        this.root.adoptedStyleSheets = [tableCss];
         // NB tabIndex is required to make the element focusable for keyboard interaction
-        this.shadowRoot.innerHTML = `
+        this.root.innerHTML = `
           <section tabIndex=0>
             <table id="table" role="table" aria-live="polite">
               <thead id="thead" role="rowgroup"></thead>
@@ -57,11 +57,11 @@ export class TableComponent extends HTMLElement {
           </section>
         `;
 
-        this.#table = this.shadowRoot.getElementById('table') as HTMLTableElement;
-        this.#thead = this.shadowRoot.getElementById('thead') as HTMLTableSectionElement;
-        this.#tbody = this.shadowRoot.getElementById('tbody') as HTMLTableSectionElement;
-        this.#pager = this.shadowRoot.getElementById('pager') as HTMLInputElement;
-        this.#logElement = this.shadowRoot.getElementById('log') as HTMLElement;
+        this.#table = this.root.getElementById('table') as HTMLTableElement;
+        this.#thead = this.root.getElementById('thead') as HTMLTableSectionElement;
+        this.#tbody = this.root.getElementById('tbody') as HTMLTableSectionElement;
+        this.#pager = this.root.getElementById('pager') as HTMLInputElement;
+        this.#logElement = this.root.getElementById('log') as HTMLElement;
 
         const maxAttempts = Number(this.getAttribute('max-reconnect-attempts'));
         if (!isNaN(maxAttempts)) this.#maxReconnectAttempts = maxAttempts;
@@ -186,7 +186,7 @@ export class TableComponent extends HTMLElement {
         this.#thead.addEventListener('click', this.#columnHeaderClickHander.bind(this));
         this.#pager.addEventListener('input', () => this.#renderVisibleRows());
 
-        const sectionElement = this.shadowRoot.querySelector('section') as HTMLElement;
+        const sectionElement = this.root.querySelector('section') as HTMLElement;
 
         sectionElement.addEventListener('wheel', (event) => {
             event.preventDefault();

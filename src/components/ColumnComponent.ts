@@ -13,7 +13,7 @@ export class ColumnComponent extends HTMLElement {
         const keyAttr = this.getAttribute('key');
         const typeAttr = this.getAttribute('type') as 'string' | 'number' | 'date' | null;
 
-        this.shadowRoot!.innerHTML = `<slot></slot>`;
+        this.root!.innerHTML = `<slot></slot>`;
 
         this.name = nameAttr ?? undefined;
         this.key = keyAttr ?? undefined;
