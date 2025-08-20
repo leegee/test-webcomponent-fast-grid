@@ -124,7 +124,3 @@ Sending between 1-50 messages every 10 ms for a dataset of 100 items, on my old 
     Heap Used: 10.21 MB
     Average FPS: 60.11
 
-## To Do
-
-* Batch updates
-* Revive dates when receiving messages

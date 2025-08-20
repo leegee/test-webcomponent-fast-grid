@@ -10,22 +10,39 @@ export type RowData = Record<string, string | number | Date | null | undefined>;
 // export class TableComponent extends ResizableMixin(HTMLElement) {
 export class TableComponent extends HTMLElement {
     static SHADOW_ROOT_MODE: ShadowRootMode = 'closed';
+
+    static get observedAttributes() {
+        return ['max-reconnect-attempts', 'min-reconnect-delay', 'max-reconnect-delay'];
+    }
+
+    static jsonDateReviver(key: string, value: any) {
+        if (typeof value === 'string') {
+            const isoDateRegex = /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?)?$/;
+            if (isoDateRegex.test(value)) {
+                return new Date(value);
+            }
+        }
+        return value;
+    }
+
+    columns: ColumnAttributes[] = [];
+    idFieldName = 'id';
+    root;
+
     #benchmarkHelper: BenchmarkHelper | undefined;
     #cachedCells: HTMLTableCellElement[][] = [];
-    columns: ColumnAttributes[] = [];
     #computedCells: (string | undefined)[][] = [];
     #computedCellsColumnCallbacks: (ColumnCallback | undefined)[] = [];
-    idFieldName = 'id';
     #logElement: HTMLElement;
-    #numberOfRowsVisible = 40;
-    #pager: HTMLInputElement;
-    #reconnectAttempts = 0;
-    #minReconnectDelay = 1_000;
     #maxReconnectAttempts = 10;
     #maxReconnectDelay = 30_000;
+    #minReconnectDelay = 1_000;
+    #numberOfRowsVisible = 40;
+    #pager: HTMLInputElement;
+    #pendingRows: RowData[] = [];
+    #reconnectAttempts = 0;
     #rowElements: HTMLTableRowElement[] = [];
     #rowsByGuid = new Map();
-    root;
     #sortedRows: RowData[] = [];
     #sortFieldName: string | undefined;
     #sortMultiplier = 1;
@@ -36,10 +53,6 @@ export class TableComponent extends HTMLElement {
     #ws: WebSocket | undefined;
 
     #sortFunction: (a: RowData, b: RowData) => number = () => 0;
-
-    static get observedAttributes() {
-        return ['max-reconnect-attempts', 'min-reconnect-delay', 'max-reconnect-delay'];
-    }
 
     constructor() {
         super();
@@ -75,23 +88,6 @@ export class TableComponent extends HTMLElement {
         if (!isNaN(maxDelay)) this.#maxReconnectDelay = maxDelay;
     }
 
-    attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
-        const n = Number(newValue);
-        if (isNaN(n)) return;
-
-        switch (name) {
-            case 'max-reconnect-attempts':
-                this.#maxReconnectAttempts = n;
-                break;
-            case 'min-reconnect-delay':
-                this.#minReconnectDelay = n;
-                break;
-            case 'max-reconnect-delay':
-                this.#maxReconnectDelay = n;
-                break;
-        }
-    }
-
     get maxReconnectAttempts() {
         return this.#maxReconnectAttempts;
     }
@@ -116,6 +112,24 @@ export class TableComponent extends HTMLElement {
         this.setAttribute('max-reconnect-delay', String(val));
     }
 
+
+    attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
+        const n = Number(newValue);
+        if (isNaN(n)) return;
+
+        switch (name) {
+            case 'max-reconnect-attempts':
+                this.#maxReconnectAttempts = n;
+                break;
+            case 'min-reconnect-delay':
+                this.#minReconnectDelay = n;
+                break;
+            case 'max-reconnect-delay':
+                this.#maxReconnectDelay = n;
+                break;
+        }
+    }
+
     #connectWebSocket() {
         const url = this.getAttribute('websocket-url');
         if (!url) return;
@@ -130,17 +144,8 @@ export class TableComponent extends HTMLElement {
         });
 
         this.#ws.addEventListener('message', (event) => {
-            const newRows = JSON.parse(event.data); // Revive dates
-            if (!this.#updateRequested) {
-                this.#updateRequested = true;
-
-                this.#processNewData(newRows);
-
-                requestAnimationFrame(() => {
-                    this.#renderVisibleRows();
-                    this.#updateRequested = false;
-                });
-            }
+            const newRows: RowData[] = JSON.parse(event.data, TableComponent.jsonDateReviver);
+            this.#enqueueRows(newRows);
         });
 
         this.#ws.addEventListener('close', (ev) => {
@@ -159,20 +164,6 @@ export class TableComponent extends HTMLElement {
         this.#ws.addEventListener('error', (err) => {
             this.#logError('WebSocket error', { type: err.type, readyState: this.#ws!.readyState, url });
         });
-    }
-
-    #logError(...msg: any[]) {
-        console.error(msg);
-        const p = document.createElement('p');
-        p.textContent = msg.length === 1 ? String(msg) : JSON.stringify(msg, null, 2);
-        this.#logElement.appendChild(p);
-        this.#logElement.scrollTop = this.#logElement.scrollHeight;
-        this.#logElement.style.visibility = 'visible';
-    }
-
-    #clearLog() {
-        this.#logElement.innerHTML = '';
-        this.#logElement.style.visibility = 'hidden';
     }
 
     async connectedCallback() {
@@ -251,6 +242,20 @@ export class TableComponent extends HTMLElement {
         }
     }
 
+    #logError(...msg: any[]) {
+        console.error(msg);
+        const p = document.createElement('p');
+        p.textContent = msg.length === 1 ? String(msg) : JSON.stringify(msg, null, 2);
+        this.#logElement.appendChild(p);
+        this.#logElement.scrollTop = this.#logElement.scrollHeight;
+        this.#logElement.style.visibility = 'visible';
+    }
+
+    #clearLog() {
+        this.#logElement.innerHTML = '';
+        this.#logElement.style.visibility = 'hidden';
+    }
+
     #initialiseTable() {
         // Set the column types based upon child elements: <foo-column name='ID' key='id' type='string'/>
         const columnElements = Array.from(this.querySelectorAll('foo-column'));
@@ -316,7 +321,7 @@ export class TableComponent extends HTMLElement {
             this.#computedCells[rowIndex] = [];
         }
 
-        // A cache for fast access during rendering
+        // A cache for faster access during rendering
         this.#cachedCells = [];
         for (let rowIndex = 0; rowIndex < this.#rowElements.length; rowIndex++) {
             const rowElement = this.#rowElements[rowIndex];
@@ -327,16 +332,6 @@ export class TableComponent extends HTMLElement {
             }
             this.#cachedCells.push(rowCells);
         }
-    }
-
-    #processNewData(newRows: any[]) {
-        // Add new row data - this is the fastest form of loop
-        for (let i = 0; i < newRows.length; i++) {
-            // I suspect a numeric index would be faster than this named access?
-            this.#rowsByGuid.set(newRows[i][this.idFieldName], newRows[i]);
-        }
-
-        this.#update();
     }
 
     #renderVisibleRows() {
@@ -399,6 +394,32 @@ export class TableComponent extends HTMLElement {
             )
         );
         this.#renderVisibleRows();
+    }
+
+    #enqueueRows(newRows: RowData[]) {
+        this.#pendingRows.push(...newRows);
+
+        if (!this.#updateRequested) {
+            this.#updateRequested = true;
+
+            requestAnimationFrame(() => {
+                this.#processNewData(this.#pendingRows);
+                this.#pendingRows = [];
+                this.#updateRequested = false;
+
+                this.#renderVisibleRows();
+            });
+        }
+    }
+
+    #processNewData(newRows: any[]) {
+        // Add new row data - this is the fastest form of loop
+        for (let i = 0; i < newRows.length; i++) {
+            // I suspect a numeric index would be faster than this named access?
+            this.#rowsByGuid.set(newRows[i][this.idFieldName], newRows[i]);
+        }
+
+        this.#update();
     }
 
     #setSortFunction() {
