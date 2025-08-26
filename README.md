@@ -78,13 +78,15 @@ Static `SHADOW_ROOT_MODE` - `open` or `closed`, defaults to `closed` but can bet
     --foo-pager-width
     --foo-cell-align
 
-### Parts
+### Exposed CSS Shadow DOM `Parts`
 
     row
     cell
     log
 
 Every column is also marked as a `part` using the column `key` property.
+
+See [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/::part) for more on `::part()`.
 
 ## Code Notes
 
@@ -96,15 +98,9 @@ Every column is also marked as a `part` using the column `key` property.
 
     bun run test
 
-## Example
-
-    bun run test:server
-    bun run dev
-
 ## Benchmark
 
-Supply a `benchmark='true'` attribute to see benchmarks in the console. These impact performance a little, but cannot
-be run in a worker thread because workers do not have acess to the `performance.memory` API.
+Supply a `benchmark='true'` attribute to see benchmarks in the console. These impact performance a little, but cannot be run in a worker thread because workers do not have acess to the `performance.memory` API.
 
 Sending between 1-50 messages every 10 ms for a dataset of 100 items, on my old 64GB i7 running Windoze 10, whilst the app isn't touched and I'm watching a video on PooTube:
 
