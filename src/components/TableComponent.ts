@@ -43,7 +43,7 @@ export class TableComponent extends HTMLElement {
     #reconnectAttempts = 0;
     #rowElements: HTMLTableRowElement[] = [];
     #rowsByGuid = new Map();
-    #sortedRows: RowData[] = [];
+    #sortedRows: RowData[] = [];  // Should remove this and use a local var in renderVisibleRows
     #sortFieldName: string | undefined;
     #sortMultiplier = 1;
     #table: HTMLTableElement;
@@ -409,6 +409,7 @@ export class TableComponent extends HTMLElement {
         if (!this.#updateRequested) {
             this.#updateRequested = true;
 
+            // Batch updates
             requestAnimationFrame(() => {
                 this.#processNewData(this.#pendingRows);
                 this.#pendingRows = [];
