@@ -14,18 +14,17 @@
     bun install
     bun run test
 
-To test in a browser:
+To test in a browser, start the testing server to send fake data over a websocket to the component hosted by Vite:
 
-    # test ws server
     bun run test:server
 
     # Or test ws server - slow
     bun run test:server:slow
 
-    # dev wc server
+    # Start the dev server
     bun dev
 
-See [`index.html`](./index.html) for a complete example.
+See [`index.html`](./index.html) for a complete example where [`main.ts`](./src/main.ts) illustrates restyling a cell based on changes in its value.
 
 ## Description
 
