@@ -30,8 +30,8 @@ export class TableComponent extends HTMLElement {
     root;
 
     #benchmarkHelper: BenchmarkHelper | undefined;
-    #cachedCells: HTMLTableCellElement[][] = [];
-    #computedCells: (string | undefined)[][] = [];
+    #cachedCells: HTMLTableCellElement[][] = [];   // DOM elements
+    #computedCells: (string | undefined)[][] = []; // Values only
     #computedCellsColumnCallbacks: (ColumnCallback | undefined)[] = [];
     #logElement: HTMLElement;
     #maxReconnectAttempts = 10;
@@ -257,7 +257,8 @@ export class TableComponent extends HTMLElement {
     }
 
     #initialiseTable() {
-        // Set the column types based upon child elements: <foo-column name='ID' key='id' type='string'/>
+        // Sets the column types based upon child elements: <foo-column name='ID' key='id' type='string'/>
+        // Columns are our  children:
         const columnElements = Array.from(this.querySelectorAll('foo-column'));
 
         this.columns = columnElements.map((colElem) => {
@@ -338,27 +339,31 @@ export class TableComponent extends HTMLElement {
         const start = parseInt(this.#pager.value, 10);
         const visibleRows = this.#sortedRows.slice(start, start + this.#numberOfRowsVisible);
 
+        // Iterate over the rows on the screen:
         for (let rowIndex = 0; rowIndex < visibleRows.length; rowIndex++) {
             const rowData = visibleRows[rowIndex];
 
+            // The cached row should always be defined:
             if (this.#cachedCells[rowIndex]) {
+                // Iterate over the columns in this row:
                 for (let colIndex = 0; colIndex < this.columns.length; colIndex++) {
 
                     // If the user specified a callback for this colum, use it:
                     if (typeof this.#computedCellsColumnCallbacks[colIndex] === "function") {
 
-                        // If the value has changed:
+                        // Run the callback:
                         const updatedContent = this.#computedCellsColumnCallbacks[colIndex]!(
                             rowData[this.columns[colIndex].key!],
                             rowData,
                             this.#cachedCells[rowIndex][colIndex]
                         );
 
+                        // Ignore 'undef' and, if the value has changed, update
                         if (updatedContent !== undefined &&
                             this.#computedCells[rowIndex][colIndex] !== updatedContent
                         ) {
                             this.#cachedCells[rowIndex][colIndex].innerHTML = updatedContent;
-                            this.#computedCells[rowIndex][colIndex] = updatedContent; //sort
+                            this.#computedCells[rowIndex][colIndex] = updatedContent; // sortable
                         }
 
                     }
@@ -370,6 +375,8 @@ export class TableComponent extends HTMLElement {
                         this.#cachedCells[rowIndex][colIndex].innerHTML = String(rowData[this.columns[colIndex].key!] || '');
                     }
                 }
+            } else {
+                throw new Error('Unexpected lack of cached row ' + rowIndex);
             }
         }
 
