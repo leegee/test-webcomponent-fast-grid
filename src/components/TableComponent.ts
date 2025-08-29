@@ -33,6 +33,7 @@ export class TableComponent extends HTMLElement {
     #cachedCells: HTMLTableCellElement[][] = [];   // DOM elements
     #computedCells: (string | undefined)[][] = []; // Values only
     #computedCellsColumnCallbacks: (ColumnCallback | undefined)[] = [];
+    #reconnectTimeout: ReturnType<typeof setTimeout> | undefined;
     #logElement: HTMLElement;
     #maxReconnectAttempts = 10;
     #maxReconnectDelay = 30_000;
@@ -78,14 +79,29 @@ export class TableComponent extends HTMLElement {
         this.#pager = this.root.getElementById('pager') as HTMLInputElement;
         this.#logElement = this.root.getElementById('log') as HTMLElement;
 
-        const maxAttempts = Number(this.getAttribute('max-reconnect-attempts'));
-        if (!isNaN(maxAttempts)) this.#maxReconnectAttempts = maxAttempts;
+        const maxAttemptsAttr = this.getAttribute('max-reconnect-attempts');
+        if (maxAttemptsAttr !== null) {
+            const maxAttempts = Number(maxAttemptsAttr);
+            if (!isNaN(maxAttempts) && maxAttempts > 0) {
+                this.#maxReconnectAttempts = maxAttempts;
+            }
+        }
 
-        const minDelay = Number(this.getAttribute('min-reconnect-delay'));
-        if (!isNaN(minDelay)) this.#minReconnectDelay = minDelay;
+        const minDelayAttr = this.getAttribute('min-reconnect-delay');
+        if (minDelayAttr !== null) {
+            const minDelay = Number(minDelayAttr);
+            if (!isNaN(minDelay) && minDelay > 0) {
+                this.#minReconnectDelay = minDelay;
+            }
+        }
 
-        const maxDelay = Number(this.getAttribute('max-reconnect-delay'));
-        if (!isNaN(maxDelay)) this.#maxReconnectDelay = maxDelay;
+        const maxDelayAttr = this.getAttribute('max-reconnect-delay');
+        if (maxDelayAttr !== null) {
+            const maxDelay = Number(maxDelayAttr);
+            if (!isNaN(maxDelay) && maxDelay > 0) {
+                this.#maxReconnectDelay = maxDelay;
+            }
+        }
     }
 
     get maxReconnectAttempts() {
@@ -149,15 +165,18 @@ export class TableComponent extends HTMLElement {
         });
 
         this.#ws.addEventListener('close', (ev) => {
-            if (++this.#reconnectAttempts <= this.#maxReconnectAttempts) {
+            if (this.#reconnectAttempts < this.#maxReconnectAttempts) {
                 const delay = Math.min(
                     this.#minReconnectDelay * 2 ** this.#reconnectAttempts,
                     this.#maxReconnectDelay
                 );
                 this.#logError(`WebSocket closed (code: ${ev.code}). Reconnecting in ${delay / 1000} seconds...`);
-                setTimeout(() => this.#connectWebSocket(), delay);
+                this.#reconnectAttempts++;
+                this.#reconnectTimeout = setTimeout(() => {
+                    this.#connectWebSocket();
+                }, delay);
             } else {
-                this.#logError(`WebSocket closed (code: ${ev.code}). Max retries reached.`);
+                this.#logError(`WebSocket closed (code: ${ev.code}). Maximum retries reached.`);
             }
         });
 
@@ -239,6 +258,10 @@ export class TableComponent extends HTMLElement {
     disconnectedCallback() {
         if (this.#ws) {
             this.#ws.close();
+        }
+        if (this.#reconnectTimeout) {
+            clearTimeout(this.#reconnectTimeout);
+            this.#reconnectTimeout = undefined;
         }
     }
 
